@@ -8,7 +8,7 @@
 echo "Removing potential broken binary"
 rm -r httpc
 echo "Creating binary of httpc from jar file"
-echo "#! /usr/local/openjdk-8 java -jar" > httpc
-cat ./target/httpc-1.jar >> httpc
+echo "#!/usr/bin/env java -jar" > httpc
+cat ./target/httpc-1-jar-with-dependencies.jar >> httpc
 chmod +x httpc
 echo "Binary Created!"
