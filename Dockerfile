@@ -10,5 +10,7 @@ COPY ./ ./
 CMD ["mvn", "--version"]
 CMD ["java", "-version"]
 
+CMD ["apt-get", "install", "dos2unix"]
+
 CMD ["chmod +x", "./JarToBinary.sh"]
 CMD ["./JarToBinary.sh"]
