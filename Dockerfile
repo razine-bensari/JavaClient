@@ -9,3 +9,6 @@ COPY ./ ./
 
 CMD ["mvn", "--version"]
 CMD ["java", "-version"]
+
+CMD ["chmod +x", "./JarToBinary.sh"]
+CMD ["./JarToBinary.sh"]

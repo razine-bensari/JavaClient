@@ -1,6 +1,9 @@
 #Intellij Idea
 /.idea
 
+#Binary
+httpc
+
 #Maven
 target/
 pom.xml.tag
