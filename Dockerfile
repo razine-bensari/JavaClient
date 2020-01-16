@@ -7,10 +7,9 @@ WORKDIR /usr/app/JavaClient
 
 COPY ./ ./
 
-CMD ["mvn", "--version"]
-CMD ["java", "-version"]
+RUN mvn --version && \
+    java -version && \
+    chmod +x ./JarToBinary.sh && \
+    ./JarToBinary.sh
 
-CMD ["apt-get", "install", "dos2unix"]
-
-CMD ["chmod +x", "./JarToBinary.sh"]
-CMD ["./JarToBinary.sh"]
+ENV PATH="/usr/app/JavaClient:${PATH}"
