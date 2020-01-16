@@ -1,10 +1,9 @@
 package RequestAndResponse;
 
-import picocli.CommandLine.Option
+import picocli.CommandLine.Option;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Request {
