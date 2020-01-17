@@ -2,7 +2,7 @@
 /.idea
 
 #Binary
-httpc.sh
+bin/
 /lib
 
 #Maven
