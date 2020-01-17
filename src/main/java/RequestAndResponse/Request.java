@@ -1,6 +1,11 @@
+/*
+  Author: Razine Ahmed Bensari
+  COMP445 –Winter 2020
+  Data Communications & Computer Networks
+  Lab Assignment # 1
+  Due Date: Sunday, Feb9, 2020 by 11:59PM
+  */
 package RequestAndResponse;
-
-import picocli.CommandLine.Option;
 
 import java.io.File;
 import java.net.URL;
@@ -27,17 +32,9 @@ public final class Request {
 
         private URL url;
         private Method httpMethod;
-
-        @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.")
         private Map<String, String> headers;
-
-        @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.")
         private Map<String, String> queryParameters;
-
-        @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.")
         private String body;
-
-        @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.")
         private File file;
         private String redirectUrl;
 
