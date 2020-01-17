@@ -9,7 +9,8 @@ COPY ./ ./
 
 RUN mvn --version && \
     java -version && \
+    cd ./sh/ && \
     chmod +x ./JarToBinary.sh && \
     ./JarToBinary.sh
 
-ENV PATH="/usr/app/JavaClient:${PATH}"
+ENV PATH="/usr/app/JavaClient/bin:${PATH}"
