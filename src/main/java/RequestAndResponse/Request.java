@@ -13,19 +13,27 @@ import java.util.Map;
 
 public final class Request {
 
+    private URL url;
+    private Method httpMethod;
+    private Map<String, String> headers;
+    private Map<String, String> queryParameters;
+    private String body;
+    private File file;
+    private URL redirectUrl;
+
     private Request(){
         //Private Constructor to force the creation of this object via the builder
     }
 
     public Request(Builder builder){
         //Ask TA if we can use this class to automatically parse the string into a valid url object
-        URL url = builder.url;
-        Method httpMethod = builder.httpMethod;
-        Map<String, String> headers = builder.headers;
-        Map<String, String> queryParameters = builder.queryParameters;
-        String body = builder.body;
-        File file = builder.file;
-        String redirectUrl = builder.redirectUrl;
+        this.url = builder.url;
+        this.httpMethod = builder.httpMethod;
+        this.headers = builder.headers;
+        this.queryParameters = builder.queryParameters;
+        this.body = builder.body;
+        this.file = builder.file;
+        this.redirectUrl = builder.redirectUrl;
     }
 
     public static class Builder {
@@ -36,7 +44,7 @@ public final class Request {
         private Map<String, String> queryParameters;
         private String body;
         private File file;
-        private String redirectUrl;
+        private URL redirectUrl;
 
         //Private Constructor
         private Builder(){
@@ -62,7 +70,7 @@ public final class Request {
             return this;
         }
 
-        public Builder withRedirectUrl(String url){
+        public Builder withRedirectUrl(URL url){
             this.redirectUrl = url;
             return this;
         }
@@ -86,5 +94,66 @@ public final class Request {
             this.file = file;
             return this;
         }
+
+        public Builder withUrl(URL url){
+            this.url = url;
+            return this;
+        }
+    }
+
+    public URL getUrl() {
+        return url;
+    }
+
+    public void setUrl(URL url) {
+        this.url = url;
+    }
+
+    public Method getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(Method httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
+    public Map<String, String> getQueryParameters() {
+        return queryParameters;
+    }
+
+    public void setQueryParameters(Map<String, String> queryParameters) {
+        this.queryParameters = queryParameters;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public URL getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(URL redirectUrl) {
+        this.redirectUrl = redirectUrl;
     }
 }
