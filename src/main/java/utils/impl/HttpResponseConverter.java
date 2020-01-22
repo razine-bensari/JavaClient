@@ -39,7 +39,7 @@ public class HttpResponseConverter implements Converter<Response, String> {
         return response;
     }
 
-    /* First index is verion then status code then phrase */
+    /* First index is version then status code then phrase */
     private void populateResponseVersionStatusCodePhrase(String resAndHeader, @NotNull Response response){
         String[] versionStatusCodePhrase = resAndHeader.split(" ");
         response.setVersion(versionStatusCodePhrase[0]);
