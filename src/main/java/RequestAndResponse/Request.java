@@ -20,6 +20,8 @@ public final class Request {
     private String body;
     private File file;
     private URL redirectUrl;
+    private String version;
+    private String path;
 
     private Request(){
         //Private Constructor to force the creation of this object via the builder
@@ -34,6 +36,8 @@ public final class Request {
         this.body = builder.body;
         this.file = builder.file;
         this.redirectUrl = builder.redirectUrl;
+        this.version = builder.version;
+        this.path = builder.path;
     }
 
     public static class Builder {
@@ -45,9 +49,11 @@ public final class Request {
         private String body;
         private File file;
         private URL redirectUrl;
+        private String version;
+        private String path;
 
         //Private Constructor
-        private Builder(){
+        public Builder(){
 
         }
 
@@ -75,6 +81,11 @@ public final class Request {
             return this;
         }
 
+        public Builder withPath(String path){
+            this.path = path;
+            return this;
+        }
+
         public Builder withHeaders(Map<String, String> headers){
             this.headers = headers;
             return this;
@@ -97,6 +108,11 @@ public final class Request {
 
         public Builder withUrl(URL url){
             this.url = url;
+            return this;
+        }
+
+        public Builder withVersion(String version){
+            this.version = version;
             return this;
         }
     }
@@ -156,4 +172,12 @@ public final class Request {
     public void setRedirectUrl(URL redirectUrl) {
         this.redirectUrl = redirectUrl;
     }
+
+    public void setVersion(String version) { this.version = version; }
+
+    public String getVersion() { return version; }
+
+    public void setPath(String path) { this.path = path; }
+
+    public String getPath() { return path; }
 }

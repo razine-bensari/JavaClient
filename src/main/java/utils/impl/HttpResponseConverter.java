@@ -39,16 +39,15 @@ public class HttpResponseConverter implements Converter<Response, String> {
         return response;
     }
 
-    //First index is version, status code and phrase [0]
+    /* First index is verion then status code then phrase */
     private void populateResponseVersionStatusCodePhrase(String resAndHeader, @NotNull Response response){
-        //First index is version, status code and phrase
         String[] versionStatusCodePhrase = resAndHeader.split(" ");
         response.setVersion(versionStatusCodePhrase[0]);
         response.setStatusCode(versionStatusCodePhrase[1]);
         response.setPhrase(versionStatusCodePhrase[2]);
     }
 
-    //Everything in between ( [1... endOfArray[ ) are headers
+    /* Everything in between ( [1... endOfArray[ ) are headers */
     private void populateResponseHeaders(Map<String, String> headers,String[] headerStringArray, @NotNull Response response) {
         List<String> headerStringList = new LinkedList<String> (Arrays.asList(headerStringArray));
         headerStringList.remove(0); //removing first element as it is not a header
@@ -63,7 +62,7 @@ public class HttpResponseConverter implements Converter<Response, String> {
         response.setHeaders(headers);
     }
 
-    //Last index of res array [endOfArray] is body
+    /* Last index of res array [endOfArray] is body */
     private void populateBody(String res, @NotNull Response response) {
         response.setBody(res);
     }

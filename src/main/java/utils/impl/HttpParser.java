@@ -71,9 +71,10 @@ public class HttpParser implements Parser {
         //Request line
         requestToSend.append(request.getHttpMethod().toString().toUpperCase()) //Method
                 .append(" ") //Sp
-                .append(request.getUrl().getPath()) //URL
+                .append(request.getPath()) //URL
                 .append(" ") //Sp
-                .append("HTTP/1.1").append("\r\n"); //version + cr + lf
+                .append(request.getVersion())
+                .append("\r\n"); //version + cr + lf
 
         //Request headers
         if(!MapUtils.isEmpty(request.getHeaders())){

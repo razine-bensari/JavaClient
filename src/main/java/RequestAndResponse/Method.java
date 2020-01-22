@@ -8,6 +8,6 @@
 package RequestAndResponse;
 
 public enum Method {
-    get,
-    post
+    GET,
+    POST
 }
