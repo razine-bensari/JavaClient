@@ -1,3 +1,5 @@
+package httpc;
+
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
