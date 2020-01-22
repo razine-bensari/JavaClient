@@ -14,6 +14,9 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.impl.HttpParser;
+import utils.impl.HttpRequestConverter;
+import utils.impl.HttpResponseConverter;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -25,6 +28,9 @@ import java.util.concurrent.Callable;
 public class Httpc implements Callable<Integer> {
 
     public Executor executor = new HttpExecutor();
+    private HttpParser parser = new HttpParser();
+    private HttpRequestConverter reqConverter = new HttpRequestConverter();
+    private HttpResponseConverter resConverter = new HttpResponseConverter();
 
     @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.")
     private boolean verbose;
@@ -38,6 +44,7 @@ public class Httpc implements Callable<Integer> {
             @Parameters(index = "0") String urlfromCLI
     ){
         System.out.println("GET method has been executed");
+        System.out.println(parser.parseResponse(executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI)));
         return executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
     }
     @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
@@ -51,7 +58,9 @@ public class Httpc implements Callable<Integer> {
             @Parameters(index = "0") String urlfromCLI
     ){
         System.out.println("POST method has been executed");
-        return executor.executePOST(body, file, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        System.out.println(parser.parseResponse(executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI)));
+        return executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        //TODO handle file output and input
     }
 
     public static void main(String... args) {
@@ -69,5 +78,37 @@ public class Httpc implements Callable<Integer> {
 
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
+    }
+
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
+    }
+
+    public HttpParser getParser() {
+        return parser;
+    }
+
+    public void setParser(HttpParser parser) {
+        this.parser = parser;
+    }
+
+    public HttpRequestConverter getReqConverter() {
+        return reqConverter;
+    }
+
+    public void setReqConverter(HttpRequestConverter reqConverter) {
+        this.reqConverter = reqConverter;
+    }
+
+    public HttpResponseConverter getResConverter() {
+        return resConverter;
+    }
+
+    public void setResCconverter(HttpResponseConverter resConverter) {
+        this.resConverter = resConverter;
     }
 }

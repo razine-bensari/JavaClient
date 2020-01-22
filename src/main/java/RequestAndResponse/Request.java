@@ -61,6 +61,7 @@ public final class Request {
         public Builder(String url){ //May need to use singleton class if this constructor instantiation does not work. Implies transfer this into a method
             try {
                 this.url = new URL(url);
+                this.path = this.url.getPath();
             }catch (Exception e){
                 System.out.println("A Java exception has occured while trying to parse the url");
                 System.out.println("Please, input a valid url" + e.getMessage() + " ");
