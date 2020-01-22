@@ -1,5 +1,6 @@
 package utils.impl;
 
+import RequestAndResponse.Method;
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
 import org.apache.commons.collections4.MapUtils;
@@ -66,17 +67,64 @@ public class HttpParser implements Parser {
     @Override
     public String parseRequest(Request request) {
 
+        Method method = request.getHttpMethod();
         StringBuilder requestToSend = new StringBuilder();
 
-        //Request line
+        /* Request line */
         requestToSend.append(request.getHttpMethod().toString().toUpperCase()) //Method
                 .append(" ") //Sp
-                .append(request.getPath()) //URL
-                .append(" ") //Sp
+                .append(request.getPath()); //URL
+
+        /* query are put in the url for get request */
+        switch(method) {
+            case GET:
+                if(StringUtils.isEmpty(request.getUrl().getQuery()) && !MapUtils.isEmpty(request.getQueryParameters())) { //append query to url
+                    requestToSend.append("?");
+                    for(String key : request.getQueryParameters().keySet()) {
+                        requestToSend.append(key)
+                                .append("=")
+                                .append(request.getQueryParameters().get(key))
+                                .append("&");
+                    }
+                    requestToSend.setLength(requestToSend.length() - 1 ); //removing trailing ',' character
+                } else if(!StringUtils.isEmpty(request.getUrl().getQuery()) && !MapUtils.isEmpty(request.getQueryParameters())) {
+                    System.out.println("You executed a GET request with query in both the url and as parameter. Query in url will prevail");
+                }
+                break;
+            case POST:
+                if(StringUtils.isEmpty(request.getUrl().getQuery()) && !MapUtils.isEmpty(request.getQueryParameters())) {
+                    request.getHeaders().put("Content-Type"," application/x-www-form-urlencoded");
+                    StringBuilder str = new StringBuilder();
+                    for(String key : request.getQueryParameters().keySet()) {
+                        str.append(key)
+                                .append("=")
+                                .append(request.getQueryParameters().get(key))
+                                .append("&");
+                    }
+                    str.setLength(str.length() - 1 ); //removing trailing ',' character
+                    request.setBody(str.toString()); //put query in body
+                } else if (!MapUtils.isEmpty(request.getQueryParameters()) && !StringUtils.isEmpty(request.getUrl().getQuery())){
+                    System.out.println("You executed a POST request with query in both the url and as parameter. Query in url will prevail");
+                }
+                break;
+        }
+//        if(request.getHttpMethod().toString().equals(GET.toString())){
+//            if(!StringUtils.isEmpty(request.getUrl().getQuery())) { //append query to url
+//                requestToSend.append("?")
+//                        .append(request.getUrl().getQuery());
+//            }
+//        /* query are put in the body for post request */
+//        } else if (request.getHttpMethod().toString().equals(POST.toString())) {
+//            if(!StringUtils.isEmpty(request.getUrl().getQuery())) {
+//                request.getHeaders().put("Content-Type","application/x-www-form-urlencoded");
+//                request.setBody(request.getUrl().getQuery()); //put query in body
+//            }
+//        }
+        requestToSend.append(" ") //Sp
                 .append(request.getVersion())
                 .append("\r\n"); //version + cr + lf
 
-        //Request headers
+        /* Request Headers */
         if(!MapUtils.isEmpty(request.getHeaders())){
             for(String key : request.getHeaders().keySet()) {
                 requestToSend
