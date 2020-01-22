@@ -5,11 +5,12 @@ import RequestAndResponse.Response;
 import httpc.api.Client;
 import utils.api.Converter;
 import utils.api.Parser;
-import utils.impl.HttpResponseConverter;
 import utils.impl.HttpParser;
+import utils.impl.HttpResponseConverter;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class HttpClient implements Client {
@@ -19,7 +20,10 @@ public class HttpClient implements Client {
 
     public Response get(Request request) {
         try {
-            Socket socket = new Socket(request.getUrl().toString(), request.getUrl().getPort());
+            InetAddress addr = InetAddress.getByName(request.getUrl().getHost());
+
+
+            Socket socket = new Socket(addr, 80); //support only port 80 as of now
 
             InputStream inputStream = socket.getInputStream();
             OutputStream outputStream = socket.getOutputStream();
@@ -28,6 +32,7 @@ public class HttpClient implements Client {
             outputStream.flush();
 
             String response = parser.parseResponse(inputStream); //Returns the parsed response (using http specification).
+            System.out.println(response);
 
             return converter.convert(response); //Converts parsed response into Response object
 
