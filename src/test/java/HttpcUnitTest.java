@@ -1,24 +1,20 @@
 import org.junit.jupiter.api.Test;
 
+import java.net.URL;
+
 public class HttpcUnitTest {
 
     @Test
     public void mixedOptionsAndParametersShouldBeFilteredForHttpcCommand() {
-//        Httpc httpc = new Httpc();
-//        //GetCommand getCommand = new GetCommand();
-//        PostCommand postCommand = new PostCommand();
-//
-//        //setting up the command
-//        String[] args = {"www.myurl.com", "-d", "{mybody}" };
-//
-//        new CommandLine(httpc).parseArgs(args);
-//
-//        // assert statements
-//        //assert httpc.getHeadersFromCLI().equals(args[3]);
-//        System.out.println(postCommand.getBodyFromCLI() + "   " + args[4]);
-//
-//        //assert postCommand.getBodyFromCLI().equals(args[2]);
-//        //assert httpc.getUrlfromCLI().equals(args[0]);
+        String str = "http://example.com/path/to/page?name=ferret&color=purple";
+
+        try {
+            URL url = new URL(str);
+            System.out.println(url.getQuery());
+        } catch (Exception e){
+            System.out.printf("%s", e.getMessage());
+        }
+
     }
 }
 

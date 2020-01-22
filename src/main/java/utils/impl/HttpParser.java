@@ -28,7 +28,34 @@ public class HttpParser implements Parser {
     }
 
     public String parseRequest(Request request) {
-        String request1;
-        return request1 = "GET /status/999 HTTP/1.0\r\n\r\n";
+        //Do validation of fields here, such as if headers blablabla, if query blablabla in the form of Preconditions.check(a,b);
+        StringBuilder requestToSend = new StringBuilder();
+
+        //Request line
+        requestToSend.append(request.getHttpMethod().toString().toUpperCase()) //Method
+                .append(" ") //Sp
+                .append(request.getUrl().getPath()) //URL
+                .append(" ") //Sp
+                .append("HTTP/1.1").append("\r\n"); //version + cr + lf
+
+        //Request headers
+        if(!request.getHeaders().isEmpty()){
+            for(String key : request.getHeaders().keySet()) {
+                requestToSend
+                        .append(key) // header field name
+                        .append(":") // :
+                        .append(request.getHeaders().get(key)) //value
+                        .append("\r\n"); //cr and lf
+            }
+        }
+
+        //cr and lf before body
+        requestToSend.append("\r\n");
+
+        //body
+        if(!request.getBody().isEmpty()){
+            requestToSend.append(request.getBody());
+        }
+        return requestToSend.toString();
     }
 }

@@ -20,8 +20,6 @@ public class HttpExecutor implements Executor {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.get)
-                    .withUrl(new URL(urlfromCLI))
-                    // .withQueryParameters(new URL(urlfromCLI).getQuery())
                     .withHeaders(converter.convert(headersFromCLI))
                     .withRedirectUrl(new URL(redirectUrlFromCLI))
                     .withBody(body)
@@ -30,15 +28,13 @@ public class HttpExecutor implements Executor {
         } catch (MalformedURLException e){
             System.out.printf("%s", e.getMessage());
         }
-        return new Response();
+        return new Response(); //empty response if exception is thrown
     }
 
     public Response executeGET(String headersFromCLI, String fileName, String queryFromCLI, String redirectUrlFromCLI, String urlfromCLI) {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.get)
-                    .withUrl(new URL(urlfromCLI))
-                    // .withQueryParameters(new URL(urlfromCLI).getQuery())
                     .withHeaders(converter.convert(headersFromCLI))
                     .withRedirectUrl(new URL(redirectUrlFromCLI))
                     .Build();
@@ -46,6 +42,6 @@ public class HttpExecutor implements Executor {
         } catch (MalformedURLException e){
             System.out.printf("%s", e.getMessage());
         }
-        return new Response();
+        return new Response(); //empty response if exception is thrown
     }
 }

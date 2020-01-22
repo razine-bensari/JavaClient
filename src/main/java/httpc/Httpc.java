@@ -8,15 +8,12 @@
 package httpc;
 
 import RequestAndResponse.Response;
-import httpc.api.Client;
 import httpc.api.Executor;
-import httpc.impl.HttpClient;
 import httpc.impl.HttpExecutor;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.impl.HttpHeaderConverter;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -27,8 +24,6 @@ import java.util.concurrent.Callable;
         version = "httpc CLI version 1.0.0")
 public class Httpc implements Callable<Integer> {
 
-    public Client client = new HttpClient();
-    public HttpHeaderConverter converter = new HttpHeaderConverter();
     public Executor executor = new HttpExecutor();
 
     @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.")
