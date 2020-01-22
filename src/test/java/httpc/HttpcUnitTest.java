@@ -6,7 +6,7 @@ public class HttpcUnitTest {
 
     @Test
     public void mixedOptionsAndParametersShouldBeFilteredForHttpcCommand() {
-        String str = "http://ip.jsontest.com";
+        String str = "http://httpbin.org/ip";
 
         Httpc httpc = new Httpc();
 

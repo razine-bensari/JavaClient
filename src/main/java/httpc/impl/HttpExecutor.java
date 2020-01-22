@@ -53,6 +53,7 @@ public class HttpExecutor implements Executor {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.GET)
+                    .withVersion("HTTP/1.0")
                     .Build();
             if(!StringUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));

@@ -33,6 +33,7 @@ public class HttpClient implements Client {
 
             String response = parser.parseResponse(inputStream); //Returns the parsed response (using http specification).
             System.out.println(response);
+            System.out.println(parser.parseRequest(request));
 
             return converter.convert(response); //Converts parsed response into Response object
 
