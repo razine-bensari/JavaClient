@@ -19,7 +19,7 @@ public class HttpExecutor implements Executor {
     public Response executePOST(String body, File file, String headersFromCLI, String fileName, String queryFromCLI, String redirectUrlFromCLI, String urlfromCLI) {
         try {
             Request request = new Request.Builder(urlfromCLI)
-                    .withHttpMethod(Method.get)
+                    .withHttpMethod(Method.post)
                     .withHeaders(converter.convert(headersFromCLI))
                     .withRedirectUrl(new URL(redirectUrlFromCLI))
                     .withBody(body)

@@ -28,7 +28,7 @@ public class HttpParser implements Parser {
     }
 
     public String parseRequest(Request request) {
-        //Do validation of fields here, such as if headers blablabla, if query blablabla in the form of Preconditions.check(a,b);
+
         StringBuilder requestToSend = new StringBuilder();
 
         //Request line
