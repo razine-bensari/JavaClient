@@ -7,7 +7,6 @@
   */
 package httpc;
 
-import RequestAndResponse.Response;
 import httpc.api.Executor;
 import httpc.impl.HttpExecutor;
 import picocli.CommandLine;
@@ -36,7 +35,7 @@ public class Httpc implements Callable<Integer> {
     private boolean verbose;
 
     @Command(name = "get", helpCommand = true, description = "Set the Method type of the HTTP request as GET. Valid values: ${COMPLETION-CANDIDATES}")
-    public Response get(
+    public void get(
             @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String headersFromCLI,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
             @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String queryFromCLI,
@@ -45,10 +44,10 @@ public class Httpc implements Callable<Integer> {
     ){
         System.out.println("GET method has been executed");
         System.out.println(parser.parseResponse(executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI)));
-        return executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
     }
     @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
-    public Response post(
+    public void post(
             @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.") String body,
             @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") File file,
             @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String headersFromCLI,
@@ -58,8 +57,8 @@ public class Httpc implements Callable<Integer> {
             @Parameters(index = "0") String urlfromCLI
     ){
         System.out.println("POST method has been executed");
+        executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
         System.out.println(parser.parseResponse(executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI)));
-        return executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
         //TODO handle file output and input
     }
 

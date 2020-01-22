@@ -73,7 +73,7 @@ public class HttpParser implements Parser {
         /* Request line */
         requestToSend.append(request.getHttpMethod().toString().toUpperCase()) //Method
                 .append(" ") //Sp
-                .append(request.getPath()); //URL
+                .append(request.getPath());//path
 
         /* query are put in the url for get request */
         switch(method) {
@@ -108,18 +108,7 @@ public class HttpParser implements Parser {
                 }
                 break;
         }
-//        if(request.getHttpMethod().toString().equals(GET.toString())){
-//            if(!StringUtils.isEmpty(request.getUrl().getQuery())) { //append query to url
-//                requestToSend.append("?")
-//                        .append(request.getUrl().getQuery());
-//            }
-//        /* query are put in the body for post request */
-//        } else if (request.getHttpMethod().toString().equals(POST.toString())) {
-//            if(!StringUtils.isEmpty(request.getUrl().getQuery())) {
-//                request.getHeaders().put("Content-Type","application/x-www-form-urlencoded");
-//                request.setBody(request.getUrl().getQuery()); //put query in body
-//            }
-//        }
+
         requestToSend.append(" ") //Sp
                 .append(request.getVersion())
                 .append("\r\n"); //version + cr + lf
