@@ -14,6 +14,10 @@ import utils.impl.HttpQueryConverter;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class HttpExecutor implements Executor {
 
@@ -21,7 +25,7 @@ public class HttpExecutor implements Executor {
     public HttpHeaderConverter headerConverter = new HttpHeaderConverter();
     public HttpQueryConverter queryConverter = new HttpQueryConverter();
 
-    public Response executePOST(String body, String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
+    public Response executePOST(String body, String fileBody, String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.POST)
@@ -43,8 +47,17 @@ public class HttpExecutor implements Executor {
             if(!StringUtils.isEmpty(body)) {
                 request.setBody(body);
             }
+            if(!StringUtils.isEmpty(fileBody)){
+                ArrayList<String> linesFromFile = (ArrayList<String>) Files.readAllLines(Paths.get(fileBody), StandardCharsets.UTF_8);
+                StringBuilder str = new StringBuilder();
+                for (String line : linesFromFile) {
+                    str.append(line);
+                }
+                String testFromFile = str.toString();
+                request.setBody(testFromFile);
+            }
             return client.post(request);
-        } catch (MalformedURLException e){
+        } catch (Exception e){
             System.out.printf("%s", e.getMessage());
         }
         return new Response(); //empty response if exception is thrown
@@ -68,7 +81,6 @@ public class HttpExecutor implements Executor {
             }
             if(!ArrayUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
-                //TODO add logic to transfer url-based query to the query attribute
             }
             return client.get(request);
         } catch (MalformedURLException e){

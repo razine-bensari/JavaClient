@@ -76,6 +76,7 @@ public class HttpParser implements Parser {
                 .append(" ") //Sp
                 .append(request.getPath());//path
 
+        //IMPORTANT TO UNDERSTAND THE LOGIC HERE//
         /* query are put in the url for get request */
         switch(method) {
             case GET:

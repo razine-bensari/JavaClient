@@ -19,31 +19,14 @@ public class HttpClient implements Client {
     private Converter<Response, String> converter = new HttpResponseConverter();
 
     public Response get(Request request) {
-        try {
-            InetAddress addr = InetAddress.getByName(request.getUrl().getHost());
-
-
-            Socket socket = new Socket(addr, 80); //support only port 80 as of now
-
-            InputStream inputStream = socket.getInputStream();
-            OutputStream outputStream = socket.getOutputStream();
-
-            outputStream.write(parser.parseRequest(request).getBytes()); //Writes the request to the outputstream after being parsed from object to string
-            outputStream.flush();
-
-            String response = parser.parseResponse(inputStream); //Returns the parsed response (using http specification).
-            System.out.println(response);
-            System.out.println(parser.parseRequest(request));
-
-            return converter.convert(response); //Converts parsed response into Response object
-
-        } catch (Exception e) {
-            System.out.printf("%s", e.getMessage());
-        }
-        return new Response();
+        return getResponse(request);
     }
 
     public Response post(Request request) {
+        return getResponse(request);
+    }
+
+    private Response getResponse(Request request) {
         try {
             InetAddress addr = InetAddress.getByName(request.getUrl().getHost());
 

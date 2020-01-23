@@ -9,7 +9,9 @@ package httpc;
 
 import RequestAndResponse.Response;
 import httpc.api.Executor;
+import httpc.api.Validator;
 import httpc.impl.HttpExecutor;
+import httpc.impl.HttpValidator;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -18,7 +20,6 @@ import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 import utils.impl.HttpResponseConverter;
 
-import java.io.File;
 import java.util.concurrent.Callable;
 
 
@@ -31,6 +32,7 @@ public class Httpc implements Callable<Integer> {
     private HttpParser parser = new HttpParser();
     private HttpRequestConverter reqConverter = new HttpRequestConverter();
     private HttpResponseConverter resConverter = new HttpResponseConverter();
+    private Validator validator = new HttpValidator();
 
     @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.")
     private boolean verbose;
@@ -49,7 +51,7 @@ public class Httpc implements Callable<Integer> {
     @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
     public Response post(
             @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.") String body,
-            @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") File file,
+            @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") String fileBody,
             @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
             @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
@@ -57,7 +59,11 @@ public class Httpc implements Callable<Integer> {
             @Parameters(index = "0") String urlfromCLI
     ){
         System.out.println("POST method has been executed\n\n");
-        return executor.executePOST(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+
+        /* Exits if not valid */
+        validator.validatePostRequest(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+
+        return executor.executePOST(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
         //TODO handle file output and input
     }
 
@@ -106,7 +112,15 @@ public class Httpc implements Callable<Integer> {
         return resConverter;
     }
 
-    public void setResCconverter(HttpResponseConverter resConverter) {
+    public void setResConverter(HttpResponseConverter resConverter) {
         this.resConverter = resConverter;
+    }
+
+    public Validator getValidator() {
+        return validator;
+    }
+
+    public void setValidator(Validator validator) {
+        this.validator = validator;
     }
 }
