@@ -12,4 +12,9 @@ public class HttpValidator implements Validator {
             throw new ParsingException("-d and -f cannot be used at the same time. Please choose a single inline-data source for your request.");
         }
     }
+
+    @Override
+    public void validateGetRequest(String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, String urlfromCLI) {
+        //TODO for further implementation
+    }
 }

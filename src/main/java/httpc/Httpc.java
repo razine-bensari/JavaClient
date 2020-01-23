@@ -28,6 +28,16 @@ import java.util.concurrent.Callable;
         version = "httpc CLI version 1.0.0")
 public class Httpc implements Callable<Integer> {
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     public Executor executor = new HttpExecutor();
     private HttpParser parser = new HttpParser();
     private HttpRequestConverter reqConverter = new HttpRequestConverter();
@@ -45,7 +55,12 @@ public class Httpc implements Callable<Integer> {
             @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
             @Parameters(index = "0") String urlfromCLI
     ){
-        System.out.println("GET method has been executed\n\n");
+        System.out.println("GET method has been executed\n");
+        System.out.println(ANSI_GREEN + "----- Response Output ------" + ANSI_RESET);
+
+        /* Exits if not valid */
+        validator.validateGetRequest(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+
         return executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
     }
     @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
@@ -58,13 +73,13 @@ public class Httpc implements Callable<Integer> {
             @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
             @Parameters(index = "0") String urlfromCLI
     ){
-        System.out.println("POST method has been executed\n\n");
+        System.out.println("POST method has been executed\n");
+        System.out.println(ANSI_GREEN + "----- Response ------" + ANSI_RESET);
 
         /* Exits if not valid */
         validator.validatePostRequest(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
 
         return executor.executePOST(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
-        //TODO handle file output and input
     }
 
     public static void main(String... args) {
