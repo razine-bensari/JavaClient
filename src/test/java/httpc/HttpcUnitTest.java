@@ -22,7 +22,9 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.get("header1:value1",null,null,null, str);
+        String[] headers = {"header1:value1"};
+
+        httpc.get(headers,null,null,null, str);
     }
 
     @Test
@@ -31,7 +33,9 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.get("header1:value1,header2:value2,header3:value3",null,null,null, str);
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        httpc.get(headers,null,null,null, str);
 
     }
 
@@ -41,7 +45,11 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.get("header1:value1,header2:value2,header3:value3",null,"query1=value1",null, str);
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        String[] query = {"query1=value1"};
+
+        httpc.get(headers,null,query,null, str);
 
     }
 
@@ -51,7 +59,11 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.post(null,  null, "header1:value1,header2:value2,header3:value3",null, "query1=value1", null, str);
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        String[] query = {"query1=value1"};
+
+        httpc.post(null,  null, headers,null, query, null, str);
 
     }
 
@@ -61,7 +73,11 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.post(null,  null, "header1:value1,header2:value2,header3:value3",null, "query1=value1,query2=value2", null, str);
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        String[] query = {"query1=value1", "query2=value2"};
+
+        httpc.post(null,  null, headers,null, query, null, str);
 
     }
 
@@ -71,7 +87,11 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.post(null,  null, "header1:value1,header2:value2,header3:value3",null, "query1=value1,query2=value2", null, str);
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        String[] query = {"query1=value1", "query2=value2"};
+
+        httpc.post(null,  null, headers,null, query, null, str);
 
     }
 }

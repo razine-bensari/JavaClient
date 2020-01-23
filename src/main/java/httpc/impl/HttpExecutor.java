@@ -5,6 +5,7 @@ import RequestAndResponse.Request;
 import RequestAndResponse.Response;
 import httpc.api.Client;
 import httpc.api.Executor;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import utils.impl.HttpHeaderConverter;
@@ -20,13 +21,13 @@ public class HttpExecutor implements Executor {
     public HttpHeaderConverter headerConverter = new HttpHeaderConverter();
     public HttpQueryConverter queryConverter = new HttpQueryConverter();
 
-    public Response executePOST(String body, String headersFromCLI, String fileName, String queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
+    public Response executePOST(String body, String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.POST)
                     .withVersion("HTTP/1.0")
                     .Build();
-            if(!StringUtils.isEmpty(headersFromCLI)) {
+            if(!ArrayUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));
             }
             if(!StringUtils.isEmpty(fileName)) {
@@ -36,7 +37,7 @@ public class HttpExecutor implements Executor {
                 request.setRedirectUrl(new URL(redirectUrlFromCLI));
                 //TODO add logic to add header for redirect value
             }
-            if(!StringUtils.isEmpty(queryFromCLI)) {
+            if(!ArrayUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
             }
             if(!StringUtils.isEmpty(body)) {
@@ -49,13 +50,13 @@ public class HttpExecutor implements Executor {
         return new Response(); //empty response if exception is thrown
     }
 
-    public Response executeGET(String headersFromCLI, String fileName, String queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
+    public Response executeGET(String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.GET)
                     .withVersion("HTTP/1.0")
                     .Build();
-            if(!StringUtils.isEmpty(headersFromCLI)) {
+            if(!ArrayUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));
             }
             if(!StringUtils.isEmpty(fileName)) {
@@ -65,7 +66,7 @@ public class HttpExecutor implements Executor {
                 request.setRedirectUrl(new URL(redirectUrlFromCLI));
                 //TODO add logic to add header for redirect value
             }
-            if(!StringUtils.isEmpty(queryFromCLI)) {
+            if(!ArrayUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
                 //TODO add logic to transfer url-based query to the query attribute
             }

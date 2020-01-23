@@ -37,9 +37,9 @@ public class Httpc implements Callable<Integer> {
 
     @Command(name = "get", helpCommand = true, description = "Set the Method type of the HTTP request as GET. Valid values: ${COMPLETION-CANDIDATES}")
     public Response get(
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String headersFromCLI,
+            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String queryFromCLI,
+            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
             @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
             @Parameters(index = "0") String urlfromCLI
     ){
@@ -50,9 +50,9 @@ public class Httpc implements Callable<Integer> {
     public Response post(
             @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.") String body,
             @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") File file,
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String headersFromCLI,
+            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String queryFromCLI,
+            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
             @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
             @Parameters(index = "0") String urlfromCLI
     ){
