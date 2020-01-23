@@ -3,6 +3,7 @@ package utils.impl;
 import RequestAndResponse.Method;
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
+import httpc.ParsingException;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import utils.api.Parser;
@@ -59,9 +60,8 @@ public class HttpParser implements Parser {
                 data = inputStream.read();
             }
         }catch(Exception e) {
-            System.out.println("Error parsing response");
             System.out.printf("%s", e.getMessage());
-            System.exit(1);
+            throw new ParsingException("Error parsing response");
         }
         return response.toString();
     }
@@ -107,10 +107,23 @@ public class HttpParser implements Parser {
                                 .append(request.getQueryParameters().get(key))
                                 .append("&");
                     }
-                    str.setLength(str.length() - 1 ); //removing trailing ',' character
+                    str.setLength(str.length() - 1 ); //removing trailing '&' character
                     request.setBody(str.toString()); //put query in body
                 } else if (!MapUtils.isEmpty(request.getQueryParameters()) && !StringUtils.isEmpty(request.getUrl().getQuery())){
-                    System.out.println("You executed a POST request with query in both the url and as parameter. Query in url will prevail");
+                    /* appending url query to body */
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(request.getBody());
+                    sb.append("&");
+                    StringBuilder str = new StringBuilder();
+                    for(String key : request.getQueryParameters().keySet()) {
+                        str.append(key)
+                                .append("=")
+                                .append(request.getQueryParameters().get(key))
+                                .append("&");
+                    }
+                    str.setLength(str.length() - 1 ); //removing trailing '&' character
+                    sb.append(str.toString());
+                    request.setBody(sb.toString());
                 }
                 break;
         }

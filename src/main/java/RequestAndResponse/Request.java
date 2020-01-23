@@ -7,6 +7,8 @@
   */
 package RequestAndResponse;
 
+import httpc.ParsingException;
+
 import java.io.File;
 import java.net.URL;
 import java.util.Map;
@@ -63,9 +65,8 @@ public final class Request {
                 this.url = new URL(url);
                 this.path = this.url.getPath();
             }catch (Exception e){
-                System.out.println("A Java exception has occured while trying to parse the url");
                 System.out.println("Please, input a valid url" + e.getMessage() + " ");
-                System.exit(1);
+                throw new ParsingException("A Java exception has occured while trying to parse the url");
             }
         }
 

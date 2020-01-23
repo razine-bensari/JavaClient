@@ -1,8 +1,9 @@
 package httpc.api;
 
+import RequestAndResponse.Request;
 import RequestAndResponse.Response;
 
 public interface Handler {
-    Response handleResponseFromGET(Response response);
-    Response handleResponseFromPOST(Response response);
+    Response handleResponseFromGET(Request request, Response response);
+    Response handleResponseFromPOST(Request request, Response response);
 }

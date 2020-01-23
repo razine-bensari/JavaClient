@@ -3,8 +3,10 @@ package httpc.impl;
 import RequestAndResponse.Method;
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
+import httpc.ParsingException;
 import httpc.api.Client;
 import httpc.api.Executor;
+import httpc.api.Handler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +29,7 @@ public class HttpExecutor implements Executor {
     public HttpHeaderConverter headerConverter = new HttpHeaderConverter();
     public HttpQueryConverter queryConverter = new HttpQueryConverter();
     public Parser parser = new HttpParser();
+    public Handler handler = new HttpHandler();
 
     public Response executePOST(String body, String fileBody, String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
         try {
@@ -64,12 +67,11 @@ public class HttpExecutor implements Executor {
                 Files.write(Paths.get(fileName), parser.parseResponse(response).getBytes());
                 return response;
             }
-            return client.post(request);
+            return handler.handleResponseFromGET(request, client.post(request));
         } catch (Exception e){
             System.out.printf("%s", e.getMessage());
-            System.exit(1);
         }
-        return new Response(); //empty response if exception is thrown
+        throw new ParsingException("Invalid response from server :(");
     }
 
     public Response executeGET(String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
@@ -91,11 +93,10 @@ public class HttpExecutor implements Executor {
             if(!ArrayUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
             }
-            return client.get(request);
+            return handler.handleResponseFromPOST(request, client.get(request));
         } catch (MalformedURLException e){
             System.out.printf("%s", e.getMessage());
-            System.exit(1);
         }
-        return new Response(); //empty response if exception is thrown
+        throw new ParsingException("Invalid response from server :(");
     }
 }
