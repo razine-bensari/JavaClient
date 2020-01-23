@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import utils.api.Parser;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 public class HttpParser implements Parser {
 
@@ -93,6 +94,9 @@ public class HttpParser implements Parser {
                 break;
             case POST:
                 if(StringUtils.isEmpty(request.getUrl().getQuery()) && !MapUtils.isEmpty(request.getQueryParameters())) {
+                    if(MapUtils.isEmpty(request.getHeaders())){
+                        request.setHeaders(new HashMap<String, String>());
+                    }
                     request.getHeaders().put("Content-Type"," application/x-www-form-urlencoded");
                     StringBuilder str = new StringBuilder();
                     for(String key : request.getQueryParameters().keySet()) {

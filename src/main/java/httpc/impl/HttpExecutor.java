@@ -24,6 +24,7 @@ public class HttpExecutor implements Executor {
         try {
             Request request = new Request.Builder(urlfromCLI)
                     .withHttpMethod(Method.POST)
+                    .withVersion("HTTP/1.0")
                     .Build();
             if(!StringUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));
@@ -37,12 +38,11 @@ public class HttpExecutor implements Executor {
             }
             if(!StringUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
-                //TODO add logic to transfer url-based query to the query attribute
             }
             if(!StringUtils.isEmpty(body)) {
                 request.setBody(body);
             }
-            return client.get(request);
+            return client.post(request);
         } catch (MalformedURLException e){
             System.out.printf("%s", e.getMessage());
         }
