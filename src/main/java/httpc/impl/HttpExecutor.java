@@ -8,7 +8,9 @@ import httpc.api.Executor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import utils.api.Parser;
 import utils.impl.HttpHeaderConverter;
+import utils.impl.HttpParser;
 import utils.impl.HttpQueryConverter;
 
 import java.io.File;
@@ -24,6 +26,7 @@ public class HttpExecutor implements Executor {
     public Client client = new HttpClient();
     public HttpHeaderConverter headerConverter = new HttpHeaderConverter();
     public HttpQueryConverter queryConverter = new HttpQueryConverter();
+    public Parser parser = new HttpParser();
 
     public Response executePOST(String body, String fileBody, String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {
         try {
@@ -55,6 +58,11 @@ public class HttpExecutor implements Executor {
                 }
                 String testFromFile = str.toString();
                 request.setBody(testFromFile);
+            }
+            if(!StringUtils.isEmpty(fileName)){
+                Response response = client.post(request);
+                Files.write(Paths.get(fileName), parser.parseResponse(response).getBytes());
+                return response;
             }
             return client.post(request);
         } catch (Exception e){

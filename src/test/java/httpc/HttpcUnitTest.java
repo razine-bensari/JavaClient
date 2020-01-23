@@ -3,10 +3,7 @@ package httpc;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 public class HttpcUnitTest {
 
@@ -117,25 +114,22 @@ public class HttpcUnitTest {
     }
 
     @Test
+    public void httpcCommandOutputResponseTofile() {
+        String fileName = "response.txt";
+        String str = "http://httpbin.org/ip?queryInURL=valueInUrl";
+
+        Httpc httpc = new Httpc();
+
+        httpc.post(null,  null, null,fileName, null, null, str);
+
+        File file = Paths.get(fileName).toFile();
+
+        assert file.exists();
+    }
+
+    @Test
     public void temp() {
-        try{
-            String fileBody = "file.txt";
-            File file = Paths.get(fileBody).toFile();
-            System.out.println("This is the path: " + Paths.get(fileBody).toString());
-            if(!file.exists()){
-                System.out.println("File not found!");
-                System.exit(1);
-            }
-            ArrayList<String> linesFromFile = (ArrayList<String>) Files.readAllLines(Paths.get(fileBody), StandardCharsets.UTF_8);
-            StringBuilder str = new StringBuilder();
-            for (String line : linesFromFile) {
-                str.append(line);
-            }
-            String testFromFile = str.toString();
-            System.out.println(testFromFile);
-        } catch (Exception e ) {
-            System.out.println(e.getCause() + e.getMessage());
-        }
+        //
     }
 }
 
