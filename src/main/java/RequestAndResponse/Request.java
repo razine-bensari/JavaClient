@@ -65,6 +65,7 @@ public final class Request {
             }catch (Exception e){
                 System.out.println("A Java exception has occured while trying to parse the url");
                 System.out.println("Please, input a valid url" + e.getMessage() + " ");
+                System.exit(1);
             }
         }
 

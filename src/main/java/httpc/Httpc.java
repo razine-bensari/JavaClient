@@ -61,7 +61,7 @@ public class Httpc implements Callable<Integer> {
         System.out.println("POST method has been executed\n\n");
 
         /* Exits if not valid */
-        validator.validatePostRequest(body, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        validator.validatePostRequest(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
 
         return executor.executePOST(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
         //TODO handle file output and input

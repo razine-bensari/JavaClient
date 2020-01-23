@@ -61,6 +61,7 @@ public class HttpParser implements Parser {
         }catch(Exception e) {
             System.out.println("Error parsing response");
             System.out.printf("%s", e.getMessage());
+            System.exit(1);
         }
         return response.toString();
     }

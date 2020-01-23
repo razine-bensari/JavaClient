@@ -59,6 +59,7 @@ public class HttpExecutor implements Executor {
             return client.post(request);
         } catch (Exception e){
             System.out.printf("%s", e.getMessage());
+            System.exit(1);
         }
         return new Response(); //empty response if exception is thrown
     }
@@ -85,6 +86,7 @@ public class HttpExecutor implements Executor {
             return client.get(request);
         } catch (MalformedURLException e){
             System.out.printf("%s", e.getMessage());
+            System.exit(1);
         }
         return new Response(); //empty response if exception is thrown
     }
