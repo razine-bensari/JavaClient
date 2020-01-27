@@ -16,7 +16,6 @@ import utils.impl.HttpParser;
 import utils.impl.HttpQueryConverter;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -88,13 +87,17 @@ public class HttpExecutor implements Executor {
             }
             if(!StringUtils.isEmpty(redirectUrlFromCLI)) {
                 request.setRedirectUrl(new URL(redirectUrlFromCLI));
-                //TODO add logic to add header for redirect value
             }
             if(!ArrayUtils.isEmpty(queryFromCLI)) {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
             }
+            if(!StringUtils.isEmpty(fileName)){
+                Response response = client.post(request);
+                Files.write(Paths.get(fileName), parser.parseResponse(response).getBytes());
+                return response;
+            }
             return handler.handleResponseFromPOST(request, client.get(request));
-        } catch (MalformedURLException e){
+        } catch (Exception e){
             System.out.printf("%s", e.getMessage());
         }
         throw new ParsingException("Invalid response from server :(");
