@@ -169,6 +169,22 @@ public class HttpcUnitTest {
     }
 
     @Test
+    public void httpcCommandPostWithFileBody() {
+
+        String str = "http://httpbin.org/ip?queryInURL=valueInUrl";
+
+        Httpc httpc = new Httpc();
+
+        String filename = "bodysample.txt";
+
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        String[] query = {"query1=value1", "query2=value2"};
+
+        httpc.post(null,  filename, headers,null, query, null, false, str);
+    }
+
+    @Test
     public void httpcCommandOutputResponseTofile() {
         String fileName = "response.txt";
         String str = "http://httpbin.org/ip?queryInURL=valueInUrl";
