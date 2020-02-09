@@ -24,6 +24,8 @@ import java.util.concurrent.Callable;
 
 
 @Command(name = "httpc",
+        commandListHeading = "%nThe commands are:%n",
+        subcommands = {CommandLine.HelpCommand.class},
         description = "httpc is a curl-like application but supports HTTP protocol only.",
         version = "httpc CLI version 1.0.0")
 public class Httpc implements Callable<Integer> {
@@ -44,42 +46,66 @@ public class Httpc implements Callable<Integer> {
     private HttpResponseConverter resConverter = new HttpResponseConverter();
     private Validator validator = new HttpValidator();
 
-    @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.")
-    private boolean verbose;
-
-    @Command(name = "get", helpCommand = true, description = "Set the Method type of the HTTP request as GET. Valid values: ${COMPLETION-CANDIDATES}")
+    @Command(name = "get", helpCommand = true, description = "executes a HTTP GET request and prints the response.")
     public Response get(
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
+            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headers,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
-            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
-            @Parameters(index = "0") String urlfromCLI
+            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] query,
+            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrl,
+            @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.") boolean verbose,
+            @Parameters(index = "0") String url
     ){
         System.out.println("GET method has been executed\n");
         System.out.println(ANSI_GREEN + "----- Response Output ------" + ANSI_RESET);
 
         /* Exits if not valid */
-        validator.validateGetRequest(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        validator.validateGetRequest(headers, fileName, query, redirectUrl, url);
 
-        return executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        Response response = null;
+
+        try{
+            response = executor.executeGET(headers, fileName, query, redirectUrl, url);
+            if(verbose){
+                System.out.println(parser.parseResponse(response));
+            } else {
+                System.out.println(response.getBody());
+            }
+            return response;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return response;
     }
-    @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
+    @Command(name = "post", helpCommand = true, description = "executes a HTTP POST request and prints the response.")
     public Response post(
             @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.") String body,
             @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") String fileBody,
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
+            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headers,
             @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
-            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
-            @Parameters(index = "0") String urlfromCLI
+            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] query,
+            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrl,
+            @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.") boolean verbose,
+            @Parameters(index = "0") String url
     ){
         System.out.println("POST method has been executed\n");
         System.out.println(ANSI_GREEN + "----- Response ------" + ANSI_RESET);
 
-        /* Exits if not valid */
-        validator.validatePostRequest(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        Response response = null;
 
-        return executor.executePOST(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
+        validator.validatePostRequest(body, fileBody, headers, fileName, query, redirectUrl, url);
+
+        try{
+            response = executor.executePOST(body, fileBody, headers, fileName, query, redirectUrl, url);
+            if(verbose){
+                System.out.println(parser.parseResponse(response));
+            } else {
+                System.out.println(response.getBody());
+            }
+            return response;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return response;
     }
 
     public static void main(String... args) {
@@ -89,14 +115,6 @@ public class Httpc implements Callable<Integer> {
     public Integer call() {
         System.out.println("httpc has been called");
         return 0; //My error code
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
     }
 
     public Executor getExecutor() {

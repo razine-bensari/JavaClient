@@ -14,7 +14,7 @@ public class HttpQueryConverter implements Converter<Map<String, String>, String
 
         for (String s : o) {
             if(!s.contains("=") || !(StringUtils.countMatches(s, "=") == 1)){
-                throw new ParsingException("Invalid query" + s);
+                throw new ParsingException("Invalid query: " + s);
             }
             String[] temp = s.split("=");
             queryMap.put(temp[0], temp[1]);

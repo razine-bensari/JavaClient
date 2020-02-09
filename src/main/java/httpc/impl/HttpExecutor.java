@@ -92,11 +92,11 @@ public class HttpExecutor implements Executor {
                 request.setQueryParameters(queryConverter.convert(queryFromCLI));
             }
             if(!StringUtils.isEmpty(fileName)){
-                Response response = client.post(request);
+                Response response = client.get(request);
                 Files.write(Paths.get(fileName), parser.parseResponse(response).getBytes());
                 return response;
             }
-            return handler.handleResponseFromPOST(request, client.get(request));
+            return handler.handleResponseFromGET(request, client.get(request));
         } catch (Exception e){
             System.out.printf("%s", e.getMessage());
         }
