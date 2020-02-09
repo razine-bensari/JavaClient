@@ -7,135 +7,29 @@
   */
 package httpc;
 
-import RequestAndResponse.Response;
-import httpc.api.Executor;
-import httpc.api.Validator;
-import httpc.impl.HttpExecutor;
-import httpc.impl.HttpValidator;
+import httpc.subcommands.Get;
+import httpc.subcommands.Post;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
-import utils.impl.HttpParser;
-import utils.impl.HttpRequestConverter;
-import utils.impl.HttpResponseConverter;
 
 import java.util.concurrent.Callable;
 
 
 @Command(name = "httpc",
         description = "httpc is a curl-like application but supports HTTP protocol only.",
-        version = "httpc CLI version 1.0.0")
+        commandListHeading = "%nThe commands are:%n",
+        version = "httpc CLI version 1.0.0",
+        subcommands = {
+        CommandLine.HelpCommand.class, Get.class, Post.class
+        })
 public class Httpc implements Callable<Integer> {
 
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_BLACK = "\u001B[30m";
-    public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_YELLOW = "\u001B[33m";
-    public static final String ANSI_BLUE = "\u001B[34m";
-    public static final String ANSI_PURPLE = "\u001B[35m";
-    public static final String ANSI_CYAN = "\u001B[36m";
-    public static final String ANSI_WHITE = "\u001B[37m";
-
-    public Executor executor = new HttpExecutor();
-    private HttpParser parser = new HttpParser();
-    private HttpRequestConverter reqConverter = new HttpRequestConverter();
-    private HttpResponseConverter resConverter = new HttpResponseConverter();
-    private Validator validator = new HttpValidator();
-
-    @Option(names = {"-v", "--verbose"}, description = "Shows verbose output.")
-    private boolean verbose;
-
-    @Command(name = "get", helpCommand = true, description = "Set the Method type of the HTTP request as GET. Valid values: ${COMPLETION-CANDIDATES}")
-    public Response get(
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
-            @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
-            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
-            @Parameters(index = "0") String urlfromCLI
-    ){
-        System.out.println("GET method has been executed\n");
-        System.out.println(ANSI_GREEN + "----- Response Output ------" + ANSI_RESET);
-
-        /* Exits if not valid */
-        validator.validateGetRequest(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
-
-        return executor.executeGET(headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
-    }
-    @Command(name = "post", helpCommand = true, description = "Set the Method type of the HTTP request as POST.")
-    public Response post(
-            @Option(names = {"-d", "--data"}, description = "Associates an inline data to the body HTTP POST request.") String body,
-            @Option(names = {"-f", "--file"}, description = "Associates the content of a file to the body HTTP POST.") String fileBody,
-            @Option(names = {"-h", "--headers"}, description = "Associates headers to HTTP Request with the format 'key:value'.") String[] headersFromCLI,
-            @Option(names = {"-o", "--output"}, description = "Outputs the returned response to a file") String fileName,
-            @Option(names = {"-q", "--query"}, description = "Appends the query to the associated url.") String[] queryFromCLI,
-            @Option(names = {"-r", "--redirect"}, description = "Associates the request with a Redirect Url") String redirectUrlFromCLI,
-            @Parameters(index = "0") String urlfromCLI
-    ){
-        System.out.println("POST method has been executed\n");
-        System.out.println(ANSI_GREEN + "----- Response ------" + ANSI_RESET);
-
-        /* Exits if not valid */
-        validator.validatePostRequest(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
-
-        return executor.executePOST(body, fileBody, headersFromCLI, fileName, queryFromCLI, redirectUrlFromCLI, urlfromCLI);
-    }
-
     public static void main(String... args) {
-        System.exit(new CommandLine(new Httpc()).execute(args));
+        CommandLine cli = new CommandLine(new Httpc());
+        System.exit(cli.execute(args));
     }
 
     public Integer call() {
-        System.out.println("httpc has been called");
         return 0; //My error code
-    }
-
-    public boolean isVerbose() {
-        return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    public Executor getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
-    }
-
-    public HttpParser getParser() {
-        return parser;
-    }
-
-    public void setParser(HttpParser parser) {
-        this.parser = parser;
-    }
-
-    public HttpRequestConverter getReqConverter() {
-        return reqConverter;
-    }
-
-    public void setReqConverter(HttpRequestConverter reqConverter) {
-        this.reqConverter = reqConverter;
-    }
-
-    public HttpResponseConverter getResConverter() {
-        return resConverter;
-    }
-
-    public void setResConverter(HttpResponseConverter resConverter) {
-        this.resConverter = resConverter;
-    }
-
-    public Validator getValidator() {
-        return validator;
-    }
-
-    public void setValidator(Validator validator) {
-        this.validator = validator;
     }
 }
