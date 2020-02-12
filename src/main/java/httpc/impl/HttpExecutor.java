@@ -16,6 +16,7 @@ import utils.impl.HttpParser;
 import utils.impl.HttpQueryConverter;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,6 +39,7 @@ public class HttpExecutor implements Executor {
                     .Build();
             if(!ArrayUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));
+                request.getHeaders().put("Content-Length", getContentLength(body));
             }
             if(!StringUtils.isEmpty(fileName)) {
                 request.setFile(new File(fileName));
@@ -60,6 +62,7 @@ public class HttpExecutor implements Executor {
                 }
                 String testFromFile = str.toString();
                 request.setBody(testFromFile);
+                request.getHeaders().put("Content-Length", getContentLength(request.getBody()));
             }
             if(!StringUtils.isEmpty(fileName)){
                 Response response = client.post(request);
@@ -71,6 +74,14 @@ public class HttpExecutor implements Executor {
             System.out.printf("%s", e.getMessage());
         }
         throw new ParsingException("Invalid response from server :(");
+    }
+
+    private String getContentLength(String body) throws UnsupportedEncodingException {
+        if(!StringUtils.isEmpty(body)) {
+            return (String.valueOf(body.getBytes("UTF-8").length));
+        } else {
+            return "0";
+        }
     }
 
     public Response executeGET(String[] headersFromCLI, String fileName, String[] queryFromCLI, String redirectUrlFromCLI, @NotNull String urlfromCLI) {

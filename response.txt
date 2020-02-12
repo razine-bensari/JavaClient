@@ -1,10 +1,10 @@
-HTTP/1.1 405 METHOD
+HTTP/1.0 405 METHOD
 Server: gunicorn/19.9.0
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: true
-Connection: close
+Connection: keep-alive
 Content-Length: 178
-Date: Sun, 09 Feb 2020 19
+Date: Mon, 10 Feb 2020 16
 Content-Type: text/html
 Allow: HEAD, OPTIONS, GET
 

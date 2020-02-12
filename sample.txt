@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Server: gunicorn/19.9.0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Connection: close
+Content-Length: 204
+Date: Sun, 09 Feb 2020 19
+Content-Type: application/json
+
+{
+  "headers": {
+    "Host": "798601f9-default-httpbinbe-0563-1016176207.us-east-1.elb.amazonaws.com", 
+    "Sampleheader": "VAL", 
+    "X-Amzn-Trace-Id": "Root=1-5e40649a-2303d5b8a61f22e65638dae4"
+  }
+}

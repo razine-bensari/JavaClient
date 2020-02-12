@@ -1,15 +1,8 @@
 package httpc;
 
-import RequestAndResponse.Method;
-import RequestAndResponse.Request;
 import RequestAndResponse.Response;
-import httpc.api.Handler;
-import httpc.impl.HttpHandler;
 import org.junit.jupiter.api.Test;
-
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import utils.impl.HttpParser;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,27 +11,20 @@ public class HttpHandlerUnitTest {
     @Test
     public void httpHandlerWithRedirectResponse() {
         try {
+            HttpParser parser = new HttpParser();
 
-            Handler handler = new HttpHandler();
-            Response response = new Response();
-            Map<String, String> headers = new HashMap<String, String>();
+            String str = "http://httpbin.org/absolute-redirect/3";
 
-            headers.put("Location", "http://httpbin.org/ip");
-            response.setHeaders(headers);
-            response.setStatusCode("300");
+            Httpc httpc = new Httpc();
 
-            String str = "http://httpbin.org/";
+            String[] header = {"Accept: text/html"};
 
-            Request request = new Request.Builder()
-                    .withVersion("HTTP/1.0")
-                    .withHttpMethod(Method.GET)
-                    .withBody("bodyofrequest")
-                    .withUrl(new URL("http://httpbin.org"))
-                    .Build();
+            String[] param = {"url=http://httpbin.org"};
 
-            Response res = handler.handleResponseFromGET(request, response);
+            Response res = httpc.get(header,null,param,null, false,str);
 
-            assertEquals(res.getStatusCode(), "400");
+            System.out.println(parser.parseResponse(res));
+            assertEquals("302", res.getStatusCode());
 
         } catch (Exception e) {
            System.out.println(e.getMessage());
