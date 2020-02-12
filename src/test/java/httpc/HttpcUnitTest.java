@@ -23,7 +23,7 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.get(null,null,null,null, false, str);
+        httpc.get(null,null,null,null, true, str);
 
     }
 
@@ -35,7 +35,7 @@ public class HttpcUnitTest {
 
         String[] headers = {"header1:value1"};
 
-        httpc.get(headers,null,null,null, false,str);
+        httpc.get(headers,null,null,null, true,str);
     }
 
     @Test(expected = ParsingException.class)
@@ -68,7 +68,7 @@ public class HttpcUnitTest {
 
         String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
 
-        httpc.get(headers,null,null,null, false,str);
+        httpc.get(headers,null,null,null, true,str);
 
     }
 
@@ -82,7 +82,7 @@ public class HttpcUnitTest {
 
         String[] query = {"query1=value1"};
 
-        httpc.get(headers,null,query,null, false,str);
+        httpc.get(headers,null,query,null, true,str);
     }
 
     @Test(expected = ParsingException.class)
@@ -122,7 +122,7 @@ public class HttpcUnitTest {
 
         String[] query = {"query1=value1"};
 
-        httpc.post(null,  null, headers,null, query, null, false,str);
+        httpc.post(null,  null, headers,null, query, null, true,str);
 
     }
 
@@ -136,7 +136,7 @@ public class HttpcUnitTest {
 
         String[] query = {"query1=value1", "query2=value2"};
 
-        httpc.post(null,  null, headers,null, query, null, false,str);
+        httpc.post(null,  null, headers,null, query, null, true,str);
 
     }
 
@@ -149,7 +149,7 @@ public class HttpcUnitTest {
 
         String[] query = {"query1=value1", "query2=value2"};
 
-        httpc.post(null,  null, headers,null, query, null, false,str);
+        httpc.post(null,  null, headers,null, query, null, true,str);
 
     }
 
@@ -181,7 +181,7 @@ public class HttpcUnitTest {
 
         String[] query = {"query1=value1", "query2=value2"};
 
-        httpc.post(null,  filename, headers,null, query, null, false, str);
+        httpc.post(null,  filename, headers,null, query, null, true, str);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class HttpcUnitTest {
 
         Httpc httpc = new Httpc();
 
-        httpc.post(null,  null, null,fileName, null, null, false,str);
+        httpc.post(null,  null, null,fileName, null, null, true,str);
 
         File file = Paths.get(fileName).toFile();
 
@@ -212,7 +212,7 @@ public class HttpcUnitTest {
 
         String[] header = {"header1:header1"};
 
-        httpc.get(header,null,null,null, false,str);
+        httpc.get(header,null,null,null, true,str);
 
     }
 

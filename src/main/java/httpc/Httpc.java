@@ -56,7 +56,7 @@ public class Httpc implements Callable<Integer> {
             @Parameters(index = "0") String url
     ){
         System.out.println("GET method has been executed\n");
-        System.out.println(ANSI_GREEN + "----- Response Output ------" + ANSI_RESET);
+        System.out.println(ANSI_GREEN + "----- Response ------" + ANSI_RESET);
 
         /* Exits if not valid */
         validator.validateGetRequest(headers, fileName, query, redirectUrl, url);
