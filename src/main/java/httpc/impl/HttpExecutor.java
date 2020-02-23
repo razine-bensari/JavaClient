@@ -48,11 +48,11 @@ public class HttpExecutor implements Executor {
                 request.setRedirectUrl(new URL(redirectUrlFromCLI));
                 //TODO add logic to add header for redirect value
             }
-            if(!ArrayUtils.isEmpty(queryFromCLI)) {
-                request.setQueryParameters(queryConverter.convert(queryFromCLI));
-            }
             if(!StringUtils.isEmpty(body)) {
                 request.setBody(body);
+            }
+            if(!ArrayUtils.isEmpty(queryFromCLI)) { /* Will overwrite body if the*/
+                request.setQueryParameters(queryConverter.convert(queryFromCLI));
             }
             if(!StringUtils.isEmpty(fileBody)){
                 ArrayList<String> linesFromFile = (ArrayList<String>) Files.readAllLines(Paths.get(fileBody), StandardCharsets.UTF_8);
@@ -69,7 +69,7 @@ public class HttpExecutor implements Executor {
                 Files.write(Paths.get(fileName), parser.parseResponse(response).getBytes());
                 return response;
             }
-            return handler.handleResponseFromGET(request, client.post(request));
+            return handler.handleResponseFromPOST(request, client.post(request));
         } catch (Exception e){
             System.out.printf("%s", e.getMessage());
         }
@@ -78,7 +78,7 @@ public class HttpExecutor implements Executor {
 
     private String getContentLength(String body) throws UnsupportedEncodingException {
         if(!StringUtils.isEmpty(body)) {
-            return (String.valueOf(body.getBytes("UTF-8").length));
+            return (String.valueOf(body.getBytes(StandardCharsets.UTF_8).length));
         } else {
             return "0";
         }

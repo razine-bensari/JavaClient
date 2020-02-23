@@ -9,4 +9,4 @@ echo "Creating binary of httpc from jar file"
 cat ./httpc.sh ./../target/httpc-1-jar-with-dependencies.jar > httpc && chmod +x httpc
 echo "Binary Created!"
 echo "Moving Binary to /bin folder..."
-mv ./httpc ./../bin/
+mv ./httpc /usr/local/bin

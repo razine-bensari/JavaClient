@@ -127,6 +127,17 @@ public class HttpcUnitTest {
     }
 
     @Test
+    public void httpcCommandPostWithBody() {
+        String str = "http://httpbin.org/post";
+
+        Httpc httpc = new Httpc();
+
+        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+
+        httpc.post("{ THIS IS MY BODY :) }",  null, headers,null, null, null, true,str);
+    }
+
+    @Test
     public void httpcCommandPostWithSeveralQuery() {
         String str = "http://httpbin.org/ip";
 
@@ -140,6 +151,7 @@ public class HttpcUnitTest {
 
     }
 
+    @Test
     public void httpcCommandPostWithSeveralQueryAndUrlQuery() {
         String str = "http://httpbin.org/ip?queryInURL=valueInUrl";
 
