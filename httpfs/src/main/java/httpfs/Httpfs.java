@@ -74,7 +74,7 @@ public class Httpfs implements Runnable {
                     System.out.println("Server Shutting Down . . .");
                     return;
                 }
-                clientSocket.setSoTimeout(1000); // Six seconds timeout
+                clientSocket.setSoTimeout(1000);
                 new Thread(new RequestWorker(clientSocket)).start();
             }
             System.out.println("Server Shutting Down . . .") ;

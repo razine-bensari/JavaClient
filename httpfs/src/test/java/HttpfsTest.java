@@ -21,9 +21,9 @@ public class HttpfsTest {
 //        Httpfs server = new Httpfs(8080);
 //
 //        server.run();
-        //String[] headers = {"Content-Type:text/html"};
+        String[] headers = {"Content-Type:text/html"};
 
-        httpc.get(null ,null,null,null,false, "http://localhost:8080/ip");
+        httpc.get(headers ,null,null,null,false, "http://localhost:8080/");
 
     }
 }

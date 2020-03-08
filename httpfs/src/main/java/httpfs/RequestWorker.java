@@ -7,9 +7,18 @@ import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RequestWorker implements Runnable {
 
@@ -25,12 +34,10 @@ public class RequestWorker implements Runnable {
     @Override
     public void run() {
         try{
-            //InputStream in = clientSocket.getInputStream();
+            InputStream in = clientSocket.getInputStream();
             OutputStream out = clientSocket.getOutputStream();
-            String body = "Hello There";
-            String response = "HTTP/1.0 200 OK\r\nContent-Type:text/html\r\nContent-Length:" + body.getBytes(StandardCharsets.UTF_8).length + "\r\n\r\n" + body;
-            System.out.println("Received request, here is the response: \n" + response);
-            out.write(response.getBytes());
+            Response response = processRequest(converter.convert(parser.parseRequest(in)));
+            out.write(parser.parseResponse(response).getBytes());
             out.flush();
         }catch (Exception e) {
             e.printStackTrace();
@@ -39,13 +46,49 @@ public class RequestWorker implements Runnable {
     }
 
     public Response processRequest(Request request) {
+        switch(request.getHttpMethod()){
+            case GET:
+                if(request.getPath().equals("/")) {
+                    return buildListOfFile(request);
+                }
+            case POST:
+                return null;
+        }
+        return null;
+    }
 
+    private synchronized Response buildListOfFile(Request request) {
         Response response = new Response();
-        response.setStatusCode("200");
-        response.setBody("{here is your file}");
-        response.setPhrase("OK");
         response.setVersion("HTTP/1.0");
+        Map<String, String> headers = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        try {
+            List<String> listOfFileNames = new ArrayList<>();
+            final List<Path> collect = Files.walk(Paths.get("/Users/razine/workspace/JavaClientServerHTTP/fs"))
+                    .filter(Files::isRegularFile)
+                    .collect(Collectors.toList());
 
-        return response;
+            for(Path path: collect) {
+                listOfFileNames.add(path.toFile().getName());
+            }
+            for(String name: listOfFileNames) {
+                sb.append(name).append("\n");
+            }
+            if(listOfFileNames.size() == 0){
+                response.setPhrase("Not Found");
+                response.setStatusCode("404");
+            } else {
+                response.setPhrase("OK");
+                response.setStatusCode("200");
+            }
+            response.setBody(sb.toString());
+            headers.put("Content-Type", "text/plain");
+            headers.put("Content-Length", String.valueOf(sb.toString().getBytes(StandardCharsets.UTF_8).length));
+            response.setHeaders(headers);
+        } catch (Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+        return  response;
     }
 }
