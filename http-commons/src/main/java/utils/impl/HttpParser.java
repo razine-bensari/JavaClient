@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import utils.api.Parser;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
@@ -54,15 +55,50 @@ public class HttpParser implements Parser {
         StringBuilder response = new StringBuilder();
 
         try {
+            int length = 0;
             int data = inputStream.read();
             while (data != -1) {
                 response.append((char) data);
                 data = inputStream.read();
+                if(response.toString().contains("\r\n\r\n")){
+                    String[] lines = response.toString().split("\r\n");
+                    if(containsContentLength(lines)) {
+                        readTillContentLength(inputStream, response, length, data, lines);
+                    }
+                    break;
+                }
             }
         }catch(Exception e) {
             System.out.printf("%s", e.getMessage());
         }
         return response.toString();
+    }
+
+    private boolean containsContentLength(String[] arrStr) {
+        for (String s: arrStr) {
+            if (s.contains("Content-Length")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void readTillContentLength(InputStream inputStream, StringBuilder response, int length, int data, String[] lines) throws IOException {
+        for (String str : lines) {
+            if (str.contains("Content-Length")) {
+                int index = str.indexOf(':') + 1;
+                String len = str.substring(index).trim();
+                length = Integer.parseInt(len);
+                break;
+            }
+        }
+        for (int i = 1; i <= length; i++) {
+            response.append((char) data);
+            if(i == length){
+                break;
+            }
+            data = inputStream.read();
+        }
     }
 
     @Override
@@ -80,18 +116,7 @@ public class HttpParser implements Parser {
                     String method = request.substring(0,3);
                     if (!method.equals("GET")) { // POST request
                         String[] lines = request.toString().split("\r\n");
-                        for (String str : lines) {
-                            if (str.contains("Content-Length")) {
-                                int index = str.indexOf(':') + 1;
-                                String len = str.substring(index).trim();
-                                length = Integer.parseInt(len);
-                                break;
-                            }
-                        }
-                        for (int i = 1; i <= length; i++) {
-                            request.append((char) data);
-                            data = inputStream.read();
-                        }
+                        readTillContentLength(inputStream, request, length, data, lines);
                     }
                     break;
                 }

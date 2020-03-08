@@ -1,4 +1,4 @@
-package httpc.httpc;
+package httpc;
 
 import RequestAndResponse.Response;
 import httpc.Httpc;

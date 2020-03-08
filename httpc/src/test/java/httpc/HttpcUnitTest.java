@@ -1,7 +1,6 @@
-package httpc.httpc;
+package httpc;
 
 import RequestAndResponse.Response;
-import httpc.Httpc;
 import httpc.impl.HttpExecutor;
 import httpc.impl.HttpValidator;
 import org.junit.Rule;

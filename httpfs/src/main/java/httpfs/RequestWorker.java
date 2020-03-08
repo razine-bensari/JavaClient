@@ -7,8 +7,9 @@ import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
-import java.io.*;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public class RequestWorker implements Runnable {
 
@@ -24,13 +25,13 @@ public class RequestWorker implements Runnable {
     @Override
     public void run() {
         try{
-            InputStream in = clientSocket.getInputStream();
+            //InputStream in = clientSocket.getInputStream();
             OutputStream out = clientSocket.getOutputStream();
-            String response = "HTTP/1.0 200 OK\r\n\r\n";
+            String body = "Hello There";
+            String response = "HTTP/1.0 200 OK\r\nContent-Type:text/html\r\nContent-Length:" + body.getBytes(StandardCharsets.UTF_8).length + "\r\n\r\n" + body;
             System.out.println("Received request, here is the response: \n" + response);
             out.write(response.getBytes());
-            in.close();
-            out.close();
+            out.flush();
         }catch (Exception e) {
             e.printStackTrace();
             e.getMessage();
