@@ -59,7 +59,6 @@ public class HttpParser implements Parser {
             int data = inputStream.read();
             while (data != -1) {
                 response.append((char) data);
-                data = inputStream.read();
                 if(response.toString().contains("\r\n\r\n")){
                     String[] lines = response.toString().split("\r\n");
                     if(containsContentLength(lines)) {
@@ -67,6 +66,7 @@ public class HttpParser implements Parser {
                     }
                     break;
                 }
+                data = inputStream.read();
             }
         }catch(Exception e) {
             System.out.printf("%s", e.getMessage());
@@ -111,7 +111,6 @@ public class HttpParser implements Parser {
             int data = inputStream.read();
             while (data != -1) {
                 request.append((char) data);
-                data = inputStream.read();
                 if(request.toString().contains("\r\n\r\n")){
                     String method = request.substring(0,3);
                     if (!method.equals("GET")) { // POST request
@@ -120,6 +119,7 @@ public class HttpParser implements Parser {
                     }
                     break;
                 }
+                data = inputStream.read();
             }
         }catch (SocketTimeoutException ste) {
             System.out.println("Connection TIMED_OUT (6 seconds)");

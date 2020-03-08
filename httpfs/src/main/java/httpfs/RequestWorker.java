@@ -7,6 +7,7 @@ import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -45,11 +46,13 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    public Response processRequest(Request request) {
+    public synchronized Response processRequest(Request request) {
         switch(request.getHttpMethod()){
             case GET:
                 if(request.getPath().equals("/")) {
                     return buildListOfFile(request);
+                } else {
+                    return getFile(request);
                 }
             case POST:
                 return null;
@@ -90,5 +93,22 @@ public class RequestWorker implements Runnable {
             e.printStackTrace();
         }
         return  response;
+    }
+
+    private synchronized Response getFile(Request request) {
+        Response response = new Response();
+        response.setVersion("HTTP/1.0");
+
+        String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
+        String pathFile = absolutePath + request.getPath();
+        File file = new File(pathFile);
+        if(file.exists()) {
+            response.setStatusCode("200");
+            response.setPhrase("OK");
+        } else {
+            response.setStatusCode("404");
+            response.setPhrase("Not Found");
+        }
+        return null;
     }
 }
