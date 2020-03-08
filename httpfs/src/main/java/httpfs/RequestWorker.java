@@ -2,12 +2,14 @@ package httpfs;
 
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
+import org.apache.commons.io.FileUtils;
 import utils.api.Converter;
 import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -40,6 +42,7 @@ public class RequestWorker implements Runnable {
             Response response = processRequest(converter.convert(parser.parseRequest(in)));
             out.write(parser.parseResponse(response).getBytes());
             out.flush();
+            out.close();
         }catch (Exception e) {
             e.printStackTrace();
             e.getMessage();
@@ -47,15 +50,33 @@ public class RequestWorker implements Runnable {
     }
 
     public synchronized Response processRequest(Request request) {
-        switch(request.getHttpMethod()){
-            case GET:
-                if(request.getPath().equals("/")) {
-                    return buildListOfFile(request);
-                } else {
-                    return getFile(request);
-                }
-            case POST:
-                return null;
+        try{
+            switch(request.getHttpMethod()) {
+                case GET:
+                    if (request.getPath().equals("/")) {
+                        return buildListOfFile(request);
+                    } else {
+                        return getFile(request);
+                    }
+                case POST:
+                    return null;
+                default:
+                    Response response = new Response();
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "text/plain");
+                    response.setPhrase("Method Not Allowed");
+                    response.setStatusCode("405");
+                    response.setVersion("HTTP/1.0");
+                    response.setBody("Only GET and POST request are allowed at this server");
+                    headers.put("Allow", "GET, POST");
+                    headers.put("Content-Type", "text/plain");
+                    headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length));
+                    response.setHeaders(headers);
+                    return response;
+            }
+
+        } catch (Exception e){
+            e.getMessage();
         }
         return null;
     }
@@ -95,20 +116,35 @@ public class RequestWorker implements Runnable {
         return  response;
     }
 
-    private synchronized Response getFile(Request request) {
+    private synchronized Response getFile(Request request) throws IOException {
         Response response = new Response();
         response.setVersion("HTTP/1.0");
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "text/plain");
 
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
         String pathFile = absolutePath + request.getPath();
         File file = new File(pathFile);
-        if(file.exists()) {
+        if(file.exists() && Files.isReadable(file.toPath())) {
             response.setStatusCode("200");
             response.setPhrase("OK");
+        } else if (file.exists() && !Files.isReadable(file.toPath())) {
+            response.setStatusCode("403");
+            response.setHeaders(headers);
+            response.setBody("The requested file is not readable");
+            response.setPhrase("Forbidden");
+            return response;
         } else {
             response.setStatusCode("404");
             response.setPhrase("Not Found");
+            response.setBody("The requested file has not been found");
+            headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length + 1));
+            response.setHeaders(headers);
+            return response;
         }
-        return null;
+        response.setBody(FileUtils.readFileToString(file, "UTF-8"));
+        headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length + 1));
+        response.setHeaders(headers);
+        return response;
     }
 }

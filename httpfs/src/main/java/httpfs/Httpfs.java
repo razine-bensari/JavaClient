@@ -4,6 +4,7 @@ import httpc.api.Executor;
 import httpc.api.Validator;
 import httpc.impl.HttpExecutor;
 import httpc.impl.HttpValidator;
+import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -12,6 +13,7 @@ import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 import utils.impl.HttpResponseConverter;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -65,6 +67,9 @@ public class Httpfs implements Runnable {
         if(port == 0){
             port = 8080;
         }
+        if(!StringUtils.isEmpty(dirPath)){
+            createPathToDirectory(dirPath);
+        }
         try {
             ServerSocket server = new ServerSocket(port);
             while(isUpAndRunning()){
@@ -82,6 +87,12 @@ public class Httpfs implements Runnable {
             e.printStackTrace();
             e.getMessage();
         }
+    }
+
+    public void createPathToDirectory(String dirpath) {
+        String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
+        String sfPath = absolutePath + "/" + dirpath;
+        File dir = new File(sfPath);
     }
 
     @Command(name = "stop", description = "Stops the httpfs server.")
