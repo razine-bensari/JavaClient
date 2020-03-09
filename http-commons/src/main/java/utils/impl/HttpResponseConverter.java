@@ -13,8 +13,8 @@ public class HttpResponseConverter implements Converter<Response, String> {
 
         Response response = new Response();
 
-        String str = s.replaceAll("\r\n", "\n"); //Used become some servers returns responses using either "\r\n" OR "\n" only.
-        String[] res = str.split("\n\n");
+        //String str = s.replaceAll("\r\n", "\n"); //Used become some servers returns responses using either "\r\n" OR "\n" only.
+        String[] res = s.split("\r\n\r\n");
 
         if(res.length == 2){ /* With body*/
             if(getNumberOfLineFeed(res[0]) == 0){ /* Without headers */

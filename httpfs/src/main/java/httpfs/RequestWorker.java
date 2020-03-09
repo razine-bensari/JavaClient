@@ -134,7 +134,12 @@ public class RequestWorker implements Runnable {
         headers.put("Content-Type", "text/plain");
 
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
-        String pathFile = absolutePath + request.getPath();
+        String pathFile;
+        if(!StringUtils.isEmpty(dirpath)){
+            pathFile = absolutePath + dirpath + request.getPath();
+        } else {
+            pathFile = absolutePath + request.getPath();
+        }
         File file = new File(pathFile);
         if(pathFile.contains("..")) {
             response.setStatusCode("400");
@@ -151,6 +156,10 @@ public class RequestWorker implements Runnable {
         } else if (file.exists() && Files.isWritable(file.toPath())) {
             response.setStatusCode("200");
             response.setPhrase("OK");
+            response.setBody(FileUtils.readFileToString(file, "UTF-8"));
+            headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
+            response.setHeaders(headers);
+            return response;
         } else {
             response.setStatusCode("404");
             response.setPhrase("Not Found");
@@ -159,10 +168,6 @@ public class RequestWorker implements Runnable {
             response.setHeaders(headers);
             return response;
         }
-        response.setBody(FileUtils.readFileToString(file, "UTF-8"));
-        headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
-        response.setHeaders(headers);
-        return response;
     }
 
     public synchronized Response persistFile(Request request) throws IOException {
@@ -180,14 +185,13 @@ public class RequestWorker implements Runnable {
             pathFile = absolutePath + request.getPath();
         }
         File file = new File(pathFile);
-        if(pathFile.contains("..")) {
+        if(pathFile.contains("..") || !getfileName(request.getPath()).contains(".")) {
             response.setStatusCode("400");
             response.setHeaders(headers);
             response.setBody("Path for file is not valid");
             response.setPhrase("Bad Request");
             return response;
-        }
-        else if(!file.exists() && getfileName(request.getPath()).contains(".")) {
+        } else if(!file.exists() && getfileName(request.getPath()).contains(".")) {
             FileOutputStream f = FileUtils.openOutputStream(file);
             f.write(request.getBody().getBytes());
             response.setStatusCode("201");

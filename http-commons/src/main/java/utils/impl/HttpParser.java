@@ -9,7 +9,6 @@ import utils.api.Parser;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
 public class HttpParser implements Parser {
@@ -120,10 +119,7 @@ public class HttpParser implements Parser {
                 }
                 data = inputStream.read();
             }
-        }catch (SocketTimeoutException ste) {
-            System.out.println("Connection TIMED_OUT (6 seconds)");
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             System.out.printf("%s", e.getMessage());
             throw new ParsingException("Error parsing response");
         }
