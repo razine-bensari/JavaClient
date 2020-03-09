@@ -45,6 +45,11 @@ public class HttpResponseConverter implements Converter<Response, String> {
         response.setVersion(versionStatusCodePhrase[0]);
         response.setStatusCode(versionStatusCodePhrase[1]);
         response.setPhrase(versionStatusCodePhrase[2]);
+        if (versionStatusCodePhrase.length == 4) {
+            response.setPhrase(versionStatusCodePhrase[2] + " " + versionStatusCodePhrase[3]);
+        } else if (versionStatusCodePhrase.length == 5){
+            response.setPhrase(versionStatusCodePhrase[2] + " " + versionStatusCodePhrase[3] + " " + versionStatusCodePhrase[4]);
+        }
     }
 
     /* Everything in between ( [1... endOfArray[ ) are headers */

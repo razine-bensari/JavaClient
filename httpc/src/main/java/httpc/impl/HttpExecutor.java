@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpExecutor implements Executor {
 
@@ -37,9 +39,16 @@ public class HttpExecutor implements Executor {
                     .withHttpMethod(Method.POST)
                     .withVersion("HTTP/1.0")
                     .Build();
+            if(ArrayUtils.isEmpty(headersFromCLI)){
+                Map<String, String> temp = new HashMap<>();
+                temp.put("Content-Length", getContentLength(body));
+                request.setHeaders(temp);
+            }
+            if(request.getHeaders().get("Content-Length") == null){
+                request.getHeaders().put("Content-Length", getContentLength(body));
+            }
             if(!ArrayUtils.isEmpty(headersFromCLI)) {
                 request.setHeaders(headerConverter.convert(headersFromCLI));
-                request.getHeaders().put("Content-Length", getContentLength(body));
             }
             if(!StringUtils.isEmpty(fileName)) {
                 request.setFile(new File(fileName));
@@ -78,7 +87,7 @@ public class HttpExecutor implements Executor {
 
     private String getContentLength(String body) throws UnsupportedEncodingException {
         if(!StringUtils.isEmpty(body)) {
-            return (String.valueOf(body.getBytes(StandardCharsets.UTF_8).length));
+            return (String.valueOf(body.getBytes(StandardCharsets.UTF_8).length+1));
         } else {
             return "0";
         }

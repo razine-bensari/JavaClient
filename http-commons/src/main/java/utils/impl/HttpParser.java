@@ -112,9 +112,8 @@ public class HttpParser implements Parser {
             while (data != -1) {
                 request.append((char) data);
                 if(request.toString().contains("\r\n\r\n")){
-                    String method = request.substring(0,3);
-                    if (!method.equals("GET")) { // POST request
-                        String[] lines = request.toString().split("\r\n");
+                    String[] lines = request.toString().split("\r\n");
+                    if(containsContentLength(lines)) {
                         readTillContentLength(inputStream, request, length, data, lines);
                     }
                     break;

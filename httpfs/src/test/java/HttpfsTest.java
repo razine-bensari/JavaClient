@@ -1,4 +1,5 @@
 import httpc.Httpc;
+import httpfs.Httpfs;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import utils.impl.HttpParser;
@@ -18,12 +19,12 @@ public class HttpfsTest {
 
             Httpc httpc = new Httpc();
 
-//        Httpfs server = new Httpfs(8080);
-//
-//        server.run();
-        String[] headers = {"Content-Type:text/html"};
+        Httpfs server = new Httpfs(8080);
 
-        httpc.get(headers ,null,null,null,false, "http://localhost:8080/");
+        //server.run();
+        //String[] headers = {"Content-Type:text/html"};
+
+        //httpc.post("This is the body fo the file", null ,headers,null,null,null,true, "http://localhost:8080/f.txt");
 
     }
 }

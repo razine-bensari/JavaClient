@@ -8,10 +8,7 @@ import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,7 +56,7 @@ public class RequestWorker implements Runnable {
                         return getFile(request);
                     }
                 case POST:
-                    return null;
+                    return persistFile(request);
                 default:
                     Response response = new Response();
                     Map<String, String> headers = new HashMap<>();
@@ -70,15 +67,19 @@ public class RequestWorker implements Runnable {
                     response.setBody("Only GET and POST request are allowed at this server");
                     headers.put("Allow", "GET, POST");
                     headers.put("Content-Type", "text/plain");
-                    headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length));
+                    headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
                     response.setHeaders(headers);
                     return response;
             }
 
         } catch (Exception e){
             e.getMessage();
+            Response response = new Response();
+            response.setPhrase("Internal Server Error");
+            response.setStatusCode("500");
+            response.setVersion("HTTP/1.0");
+            return response;
         }
-        return null;
     }
 
     private synchronized Response buildListOfFile(Request request) {
@@ -101,13 +102,20 @@ public class RequestWorker implements Runnable {
             if(listOfFileNames.size() == 0){
                 response.setPhrase("Not Found");
                 response.setStatusCode("404");
+            } else if (request.getPath().contains("..")){
+                response.setStatusCode("400");
+                headers.put("Content-Type", "text/plain");
+                response.setHeaders(headers);
+                response.setBody("Path for file is not valid");
+                response.setPhrase("Bad Request");
+                return response;
             } else {
                 response.setPhrase("OK");
                 response.setStatusCode("200");
             }
             response.setBody(sb.toString());
             headers.put("Content-Type", "text/plain");
-            headers.put("Content-Length", String.valueOf(sb.toString().getBytes(StandardCharsets.UTF_8).length));
+            headers.put("Content-Length", String.valueOf(sb.toString().getBytes(StandardCharsets.UTF_8).length+1));
             response.setHeaders(headers);
         } catch (Exception e) {
             e.getMessage();
@@ -125,26 +133,79 @@ public class RequestWorker implements Runnable {
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
         String pathFile = absolutePath + request.getPath();
         File file = new File(pathFile);
-        if(file.exists() && Files.isReadable(file.toPath())) {
-            response.setStatusCode("200");
-            response.setPhrase("OK");
-        } else if (file.exists() && !Files.isReadable(file.toPath())) {
+        if(pathFile.contains("..")) {
+            response.setStatusCode("400");
+            response.setHeaders(headers);
+            response.setBody("Path for file is not valid");
+            response.setPhrase("Bad Request");
+            return response;
+        } else if (file.exists() && !Files.isWritable(file.toPath())) {
             response.setStatusCode("403");
             response.setHeaders(headers);
             response.setBody("The requested file is not readable");
             response.setPhrase("Forbidden");
             return response;
+        } else if (file.exists() && Files.isWritable(file.toPath())) {
+            response.setStatusCode("200");
+            response.setPhrase("OK");
         } else {
             response.setStatusCode("404");
             response.setPhrase("Not Found");
             response.setBody("The requested file has not been found");
-            headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length + 1));
+            headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
             response.setHeaders(headers);
             return response;
         }
         response.setBody(FileUtils.readFileToString(file, "UTF-8"));
-        headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length + 1));
+        headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
         response.setHeaders(headers);
         return response;
+    }
+
+    public synchronized Response persistFile(Request request) throws IOException {
+        Response response = new Response();
+        response.setVersion("HTTP/1.0");
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "text/plain");
+        headers.put("overwrite", "false");
+
+        String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
+        String pathFile = absolutePath + request.getPath();
+        File file = new File(pathFile);
+        if(pathFile.contains("..")) {
+            response.setStatusCode("400");
+            response.setHeaders(headers);
+            response.setBody("Path for file is not valid");
+            response.setPhrase("Bad Request");
+            return response;
+        }
+        else if(!file.exists() && getfileName(request.getPath()).contains(".")) {
+            FileOutputStream f = FileUtils.openOutputStream(file);
+            f.write(request.getBody().getBytes());
+            response.setStatusCode("201");
+            response.setPhrase("Created");
+            f.close();
+        } else if(file.exists() && Files.isWritable(file.toPath()) && getfileName(request.getPath()).contains(".")) {
+            FileOutputStream f = FileUtils.openOutputStream(file);
+            f.write(request.getBody().getBytes());
+            headers.put("overwrite", "true");
+            response.setStatusCode("201");
+            response.setPhrase("Created");
+            f.close();
+        } else if (file.exists() && !Files.isWritable(file.toPath())) {
+            response.setStatusCode("403");
+            response.setPhrase("Forbidden");
+            response.setBody("you do not have the right to write to this file");
+            headers.put("Content-Length", String.valueOf(response.getBody().getBytes(StandardCharsets.UTF_8).length+1));
+            response.setHeaders(headers);
+            return response;
+        }
+        response.setHeaders(headers);
+        return response;
+    }
+
+    public String getfileName(String path) {
+        String[] dirsAndFileName = path.split("/");
+        return dirsAndFileName[dirsAndFileName.length-1];
     }
 }

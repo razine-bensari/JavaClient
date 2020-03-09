@@ -129,13 +129,13 @@ public class HttpcUnitTest {
 
     @Test
     public void httpcCommandPostWithBody() {
-        String str = "http://httpbin.org/post";
+        String str = "http://localhost:8080/test.txt";
 
         Httpc httpc = new Httpc();
 
-        String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
+        //String[] headers = {"header1:value1", "header2:value2", "header3:value3"};
 
-        httpc.post("{ THIS IS MY BODY :) }",  null, headers,null, null, null, true,str);
+        httpc.post("{ THIS IS MY BODY :) }",  null, null,null, null, null, true,str);
     }
 
     @Test
