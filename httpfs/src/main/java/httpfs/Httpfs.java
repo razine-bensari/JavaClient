@@ -80,7 +80,7 @@ public class Httpfs implements Runnable {
                     return;
                 }
                 clientSocket.setSoTimeout(1000);
-                new Thread(new RequestWorker(clientSocket)).start();
+                new Thread(new RequestWorker(clientSocket, dirPath)).start();
             }
             System.out.println("Server Shutting Down . . .") ;
         } catch (IOException e){
@@ -93,6 +93,7 @@ public class Httpfs implements Runnable {
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
         String sfPath = absolutePath + "/" + dirpath;
         File dir = new File(sfPath);
+        dir.mkdirs();
     }
 
     @Command(name = "stop", description = "Stops the httpfs server.")

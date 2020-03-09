@@ -3,6 +3,7 @@ package httpfs;
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import utils.api.Converter;
 import utils.api.Parser;
 import utils.impl.HttpParser;
@@ -23,11 +24,13 @@ import java.util.stream.Collectors;
 public class RequestWorker implements Runnable {
 
     private Socket clientSocket;
+    private String dirpath;
     private Parser parser = new HttpParser();
     private Converter<Request, String> converter = new HttpRequestConverter();
 
-    public RequestWorker(Socket clientSocket) {
+    public RequestWorker(Socket clientSocket, String dirpath) {
         this.clientSocket = clientSocket;
+        this.dirpath = dirpath;
     }
 
 
@@ -170,7 +173,12 @@ public class RequestWorker implements Runnable {
         headers.put("overwrite", "false");
 
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
-        String pathFile = absolutePath + request.getPath();
+        String pathFile;
+        if(!StringUtils.isEmpty(dirpath)){
+           pathFile = absolutePath + dirpath + request.getPath();
+        } else {
+            pathFile = absolutePath + request.getPath();
+        }
         File file = new File(pathFile);
         if(pathFile.contains("..")) {
             response.setStatusCode("400");
