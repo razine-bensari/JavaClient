@@ -1,0 +1,91 @@
+GET /
+Makes sure it returns the file list, also the ones in nested directories
+httpc get -v "http://localhost:9001/"
+
+GET /..
+Makes sure it returns error (400 Bad Request)
+httpc get -v "http://localhost:9001/.."
+
+GET ../ WRONG URL EROOR FROM HTTPC
+httpc get -v "http://localhost:9001.../"
+
+
+GET /test.txt
+returns 200 OK and shows output of file
+httpc get -v "http://localhost:9001/test.txt"
+
+
+GET /test
+returns 404 not found
+httpc get -v "http://localhost:9001/test"
+
+GET /test123.txt
+returns 404 not found
+httpc get -v "http://localhost:9001/test123.txt"
+
+GET /deep1/deep.txt
+returns 200 OK
+httpc get -v "http://localhost:9001/deep1/deep.txt"
+
+
+GET /deep1/deep2/deep3/testdeep.txt
+returns 200 OK
+httpc get -v "http://localhost:9001/deep1/deep2/deep3/testdeep.txt"
+
+
+GET /deep1/deep2/deep3/thisDIRdowsNOTexist/testdeep.txt
+returns 404 NOT Found
+httpc get -v "http://localhost:9001/deep1/deep2/deep3/thisDIRdowsNOTexist/testdeep.txt"  //Even though the file exists
+
+
+GET /deep1/deep2/../testdeep.txt
+returns 400 Bad Request
+httpc get -v "http://localhost:9001/deep1/deep2/../testdeep.txt"
+
+
+GET /NotWritable.txt
+returns 403 Forbidden
+httpc get -v "http://localhost:9001/NotWritable.txt"
+
+
+
+
+
+POST /newfile190.txt
+returns 201 created with overwrite=false
+httpc post -v -d "BODY TO PASTE IN DOC" "http://localhost:9001/newfile190.txt"
+
+
+//Re write the same file just created
+POST /newfile190.txt
+returns 201 created with overwrite=true
+httpc post -v -d "BODY TO PASTE IN DOC" "http://localhost:9001/newfile190.txt"
+
+
+POST /newDir123/myNewfile.txt
+returns 201 created with overwrite-false
+httpc post -v -d "BODY TO PASTE IN FILE INSIDE newDir123" "http://localhost:9001/newDir/myNewfile.txt"
+
+
+POST /firstDir/secondDir/thirdDir/NewFile.json
+returns 201 created with overwrite=false
+httpc post -v -d "{1: 90}" "http://localhost:9001/directory1/directory2/directory3/imdone/NewJSON123.json"
+
+
+POST /NotWritable.txt
+returns 403 Forbidden
+httpc post -v -d "{1: 90}" "http://localhost:9001/NotWritable.txt"
+
+POST /../hi.txt
+returns 400 Bad Request
+httpc post -v -d "this my bodeeh" "http://localhost:9001/../hi.txt"
+
+
+POST /hi
+returns 400 bad request
+httpc post -v -d "this my bodeeh" "http://localhost:9001/hi"
+
+POST /hi/./hiti88.txt
+returns 201 created
+httpc post -v -d "this my bodeeh" "http://localhost:9001/hi/./hiti90.txt"
+creates the file ignores the dot (.)

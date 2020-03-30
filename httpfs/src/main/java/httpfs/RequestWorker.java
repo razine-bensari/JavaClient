@@ -90,9 +90,16 @@ public class RequestWorker implements Runnable {
         response.setVersion("HTTP/1.0");
         Map<String, String> headers = new HashMap<>();
         StringBuilder sb = new StringBuilder();
+        String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
+        String pathFile;
         try {
             List<String> listOfFileNames = new ArrayList<>();
-            final List<Path> collect = Files.walk(Paths.get("/Users/razine/workspace/JavaClientServerHTTP/fs"))
+            if(!StringUtils.isEmpty(dirpath)){
+                pathFile = absolutePath + dirpath + request.getPath();
+            } else {
+                pathFile = absolutePath + request.getPath();
+            }
+            final List<Path> collect = Files.walk(Paths.get(pathFile))
                     .filter(Files::isRegularFile)
                     .collect(Collectors.toList());
 
@@ -141,7 +148,7 @@ public class RequestWorker implements Runnable {
             pathFile = absolutePath + request.getPath();
         }
         File file = new File(pathFile);
-        if(pathFile.contains("..")) {
+        if(pathFile.contains("..") || !getfileName(request.getPath()).contains(".")) {
             response.setStatusCode("400");
             response.setHeaders(headers);
             response.setBody("Path for file is not valid");
