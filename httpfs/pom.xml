@@ -8,9 +8,9 @@
         <version>1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <name>http-server</name>
     <artifactId>httpfs</artifactId>
     <packaging>jar</packaging>
-    <name>A CLI based http server in Java</name>
     <build>
             <plugins>
                 <plugin>

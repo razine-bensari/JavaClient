@@ -8,6 +8,7 @@
         <version>1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <name>http-commons</name>
 
     <artifactId>http-commons</artifactId>
 

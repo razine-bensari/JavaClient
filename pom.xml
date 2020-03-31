@@ -10,6 +10,7 @@
         <module>http-commons</module>
         <module>httpc</module>
         <module>httpfs</module>
+        <module>packet</module>
     </modules>
 
     <properties>
