@@ -1,0 +1,7 @@
+12:24:34.926314 config: drop-rate=0.00, max-delay=0s, seed=1585671874925967000
+12:24:34.926763 failed to listen on port listen udp :3000: bind: address already in use
+12:25:10.565331 config: drop-rate=0.00, max-delay=0s, seed=1585671910565223000
+12:25:10.565911 router is listening at :3000
+12:27:02.335405 [queue=0] packet #1, 127.0.0.1:59204 -> 127.0.0.1:8007, sz=11 is delivered
+12:27:25.616109 [queue=0] packet #1, 127.0.0.1:60225 -> 127.0.0.1:8007, sz=11 is delivered
+12:27:25.623319 [queue=0] packet #1, 127.0.0.1:8007 -> 127.0.0.1:60225, sz=11 is delivered
