@@ -1,0 +1,25 @@
+For client side, you can use DatagramSocket() constructor and it will bind to any random port.
+
+For the server side, you neet to use the DatagramSocket(int port) to bind it to a specific port
+
+bind() method ????
+
+In DatagramSocket for the client, in the connect method, you CONNECT TO THE ROUTER NOT SERVER
+
+DatagramSocket() has a send method which takes aDatagramPAcket.
+The DatagramPAcket object is you custom made packet which is essentially a buffer (array) of bytes and the total length in big endian.
+
+Instead of connecting the datagramSocket, you can use a specific send method which takes a socketAdress (your router).
+
+initial estimated RTT is static and given by you. You can use estimated RTT and increment it using the formula.
+
+
+when client send a packet, the timer starts
+estimated RTT = 10s
+DevRTT = 0s
+Global timer = 4 * DevRTT + estimated RTT
+
+
+sampleRTT = 5s
+Global timer = new estimated RTT + 4 * DevRTT
+and new estimated RTT = (1 - 0.125) * estimatedRTT + 0.125 * sample RTT
