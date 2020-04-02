@@ -21,14 +21,8 @@ import utils.impl.HttpResponseConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.net.*;
 import java.nio.channels.DatagramChannel;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Command(name = "httpfs",
         commandListHeading = "%nThe commands are:%n",
@@ -37,9 +31,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
         version = "httpfs CLI version 1.0.0")
 public class Httpfs implements Runnable {
 
+    public static SocketAddress routerAddress = new InetSocketAddress("localhost", 3000);
+    public static InetSocketAddress serverAddress = new InetSocketAddress("localhost", 8007);
+
     Response response = new Response();
     private static final Logger logger = LoggerFactory.getLogger(UDPServer.class);
-    public long currentSeqNum = 2;
+    public long currentSeqNum = 0;
     boolean timedOutInHandshake = false;
     private Executor executor = new HttpExecutor();
     private HttpParser parser = new HttpParser();
@@ -81,52 +78,48 @@ public class Httpfs implements Runnable {
         DatagramSocket socketServer = new DatagramSocket(8007);
         logger.info("httpfs is listening at {}", socketServer.getLocalSocketAddress());
 
-        while(true) {
-            ByteBuffer buf = ByteBuffer
-                    .allocate(Packet.MAX_LEN)
-                    .order(ByteOrder.BIG_ENDIAN);
-            buf.clear();
+        while(isOpenConnection()) {
 
             byte[] buffer = new byte[Packet.MAX_LEN];
-
             DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
-
             socketServer.receive(dp);
-
             Packet packet = Packet.fromBytes(dp.getData());
-
-            String payload = new String(packet.getPayload(), UTF_8);
             logger.info("Packet: {}", packet);
-            logger.info("Packet peer address: {}, and peer port: {}", packet.getPeerAddress().toString(), packet.getPeerPort());
-            logger.info("Payload: {}", payload);
+            if(packet.getType() == PacketType.SYN.getIntValue()){
+                makeHandShake(socketServer, packet);
+            }
+            //selectiveRepeat(); selective repeat divided in two depending on if it is a get or post request
         }
+    }
+
+    private void makeHandShake(DatagramSocket socketServer, Packet packet) throws IOException {
+        Packet pSYN_ACK = packet.toBuilder()
+                .setType(PacketType.SYN_ACK.getIntValue())
+                .setPayload("in syn_ack".getBytes())
+                .create();
+
+        DatagramPacket dpSYN_ACK = new DatagramPacket(pSYN_ACK.toBytes(), pSYN_ACK.toBytes().length, routerAddress);
+        socketServer.connect(routerAddress);
+        socketServer.send(dpSYN_ACK);
     }
 
     private void selectiveRepeat() {
 
     }
 
-    private void makeHandShake(Packet packet, SocketAddress routerAddr, DatagramChannel channel) throws IOException {
-        logger.info("Received SYN from servers");
-        this.currentSeqNum = this.currentSeqNum + 1;
-        Packet pSYN_ACK = packet.toBuilder()
+    private DatagramPacket makePacket(int type, long seq, String payload){
+        Packet packet =  new Packet.Builder()
+                .setType(PacketType.SYN.getIntValue())
                 .setSequenceNumber(getCurrentSeqNum())
-                .setType(PacketType.SYN_ACK.getIntValue())
+                .setPortNumber(serverAddress.getPort())
+                .setPeerAddress(serverAddress.getAddress())
+                .setPayload(payload.getBytes())
                 .create();
+        return new DatagramPacket(packet.toBytes(), packet.toBytes().length, routerAddress);
+    }
 
-        logger.info("Sending SYN_ACK");
-        channel.send(pSYN_ACK.toBuffer(), routerAddr);
+    private void makeHandShake(Packet packet, SocketAddress routerAddr, DatagramChannel channel) throws IOException {
 
-        ByteBuffer buf = ByteBuffer
-                .allocate(Packet.MAX_LEN)
-                .order(ByteOrder.BIG_ENDIAN);
-        SocketAddress router = channel.receive(buf);
-        buf.flip();
-        Packet resp = Packet.fromBuffer(buf);
-        if(resp.getType() == PacketType.ACK.getIntValue()) {
-            logger.info("Received ACK from client. selection repeat can start");
-            this.setHandShake(true);
-        }
     }
 
     public Packet[] segmentMessage(byte[] b, int maximumSizePayload) {
