@@ -5,3 +5,12 @@
 12:27:02.335405 [queue=0] packet #1, 127.0.0.1:59204 -> 127.0.0.1:8007, sz=11 is delivered
 12:27:25.616109 [queue=0] packet #1, 127.0.0.1:60225 -> 127.0.0.1:8007, sz=11 is delivered
 12:27:25.623319 [queue=0] packet #1, 127.0.0.1:8007 -> 127.0.0.1:60225, sz=11 is delivered
+11:47:43.124228 config: drop-rate=0.00, max-delay=0s, seed=1585756063124134000
+11:47:43.124940 router is listening at :3000
+11:48:12.865862 [queue=0] packet #1, 127.0.0.1:53192 -> 127.0.0.1:8007, sz=11 is delivered
+11:48:59.242570 [queue=0] packet #1, 127.0.0.1:54534 -> 127.0.0.1:8007, sz=11 is delivered
+11:48:59.252127 [queue=0] packet #1, 127.0.0.1:8007 -> 127.0.0.1:54534, sz=11 is delivered
+16:09:58.242156 config: drop-rate=0.00, max-delay=0s, seed=1585771798242039000
+16:09:58.242945 router is listening at :3000
+16:12:16.435849 [queue=0] packet #1, 127.0.0.1:52360 -> 127.0.0.1:8007, sz=49 is delivered
+16:12:16.439869 [queue=0] packet #1, 127.0.0.1:8007 -> 127.0.0.1:52360, sz=49 is delivered

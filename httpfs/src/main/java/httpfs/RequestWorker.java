@@ -9,8 +9,9 @@ import utils.api.Parser;
 import utils.impl.HttpParser;
 import utils.impl.HttpRequestConverter;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,35 +22,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class RequestWorker implements Runnable {
+public class RequestWorker {
 
-    private Socket clientSocket;
     private String dirpath;
     private Parser parser = new HttpParser();
     private Converter<Request, String> converter = new HttpRequestConverter();
 
-    public RequestWorker(Socket clientSocket, String dirpath) {
-        this.clientSocket = clientSocket;
+    public RequestWorker(String dirpath) {
         this.dirpath = dirpath;
     }
 
-
-    @Override
-    public void run() {
-        try{
-            InputStream in = clientSocket.getInputStream();
-            OutputStream out = clientSocket.getOutputStream();
-            Response response = processRequest(converter.convert(parser.parseRequest(in)));
-            out.write(parser.parseResponse(response).getBytes());
-            out.flush();
-            out.close();
-        }catch (Exception e) {
-            e.printStackTrace();
-            e.getMessage();
-        }
-    }
-
-    public synchronized Response processRequest(Request request) {
+    public Response processRequest(Request request) {
         try{
             switch(request.getHttpMethod()) {
                 case GET:
@@ -85,7 +68,7 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    private synchronized Response buildListOfFile(Request request) {
+    private Response buildListOfFile(Request request) {
         Response response = new Response();
         response.setVersion("HTTP/1.0");
         Map<String, String> headers = new HashMap<>();
@@ -134,7 +117,7 @@ public class RequestWorker implements Runnable {
         return  response;
     }
 
-    private synchronized Response getFile(Request request) throws IOException {
+    private Response getFile(Request request) throws IOException {
         Response response = new Response();
         response.setVersion("HTTP/1.0");
         Map<String, String> headers = new HashMap<>();
@@ -177,7 +160,7 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    public synchronized Response persistFile(Request request) throws IOException {
+    public Response persistFile(Request request) throws IOException {
         Response response = new Response();
         response.setVersion("HTTP/1.0");
         Map<String, String> headers = new HashMap<>();

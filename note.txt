@@ -23,3 +23,13 @@ Global timer = 4 * DevRTT + estimated RTT
 sampleRTT = 5s
 Global timer = new estimated RTT + 4 * DevRTT
 and new estimated RTT = (1 - 0.125) * estimatedRTT + 0.125 * sample RTT
+
+
+
+
+Change HTTPC for upd
+Change httpfs for UDP
+
+test to make sure it works at least ine message
+
+make handshake()
