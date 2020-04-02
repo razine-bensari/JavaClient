@@ -14,8 +14,7 @@ import utils.impl.HttpParser;
 import utils.impl.HttpResponseConverter;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
@@ -56,9 +55,25 @@ public class HttpClient implements Client {
     }
 
     private Response runClient(SocketAddress routerAddr, InetSocketAddress serverAddr, Request request) {
-        makeHandShake(routerAddr, serverAddr);
-        //selectiveRepeat();
-        //closeConnection();
+        try {
+                Packet pSYN = new Packet.Builder()
+                .setType(PacketType.SYN.getIntValue())
+                .setSequenceNumber(getCurrentSeqNum())
+                .setPortNumber(serverAddr.getPort())
+                .setPeerAddress(serverAddr.getAddress())
+                .setPayload("in syn message".getBytes())
+                .create();
+
+            DatagramSocket socket = new DatagramSocket();
+            DatagramPacket dp = new DatagramPacket(pSYN.toBytes(), pSYN.toBytes().length, routerAddr);
+
+            socket.connect(routerAddr);
+            socket.send(dp);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return response;
     }
 

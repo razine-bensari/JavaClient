@@ -21,11 +21,14 @@ import utils.impl.HttpResponseConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Command(name = "httpfs",
         commandListHeading = "%nThe commands are:%n",
@@ -75,33 +78,27 @@ public class Httpfs implements Runnable {
         }
         RequestWorker requestWorker = new RequestWorker(dirPath);
 
-        DatagramChannel channel = DatagramChannel.open();
-        channel.bind(new InetSocketAddress(8007));
-        logger.info("httpfs is listening at {}", channel.getLocalAddress());
+        DatagramSocket socketServer = new DatagramSocket(8007);
+        logger.info("httpfs is listening at {}", socketServer.getLocalSocketAddress());
 
-//        ByteBuffer buf = ByteBuffer
-//                .allocate(Packet.MAX_LEN)
-//                .order(ByteOrder.BIG_ENDIAN);
-
-        while(isOpenConnection()) {
+        while(true) {
             ByteBuffer buf = ByteBuffer
                     .allocate(Packet.MAX_LEN)
                     .order(ByteOrder.BIG_ENDIAN);
             buf.clear();
-            logger.info("waiting to receive a request");
-            SocketAddress router = channel.receive(buf);
-            logger.info("received a request");
-            // Parse a packet from the received raw data.
-            buf.flip();
-            Packet packet = Packet.fromBuffer(buf);
-            buf.flip();
 
-            if(packet.getType() == PacketType.SYN.getIntValue()) {
-                makeHandShake(packet, router, channel);
-            } else if(isHandShaken()) {
-                selectiveRepeat();
-                closeConnection();
-            }
+            byte[] buffer = new byte[Packet.MAX_LEN];
+
+            DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+
+            socketServer.receive(dp);
+
+            Packet packet = Packet.fromBytes(dp.getData());
+
+            String payload = new String(packet.getPayload(), UTF_8);
+            logger.info("Packet: {}", packet);
+            logger.info("Packet peer address: {}, and peer port: {}", packet.getPeerAddress().toString(), packet.getPeerPort());
+            logger.info("Payload: {}", payload);
         }
     }
 
