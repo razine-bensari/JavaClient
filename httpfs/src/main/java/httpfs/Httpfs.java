@@ -1,8 +1,10 @@
 package httpfs;
 
+import RequestAndResponse.Method;
+import RequestAndResponse.Request;
 import RequestAndResponse.Response;
-import ca.concordia.Packet;
-import ca.concordia.PacketType;
+import ca.concordia.domain.Packet;
+import ca.concordia.domain.PacketType;
 import ca.concordia.UDPServer;
 import httpc.api.Executor;
 import httpc.api.Validator;
@@ -22,7 +24,7 @@ import utils.impl.HttpResponseConverter;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
-import java.nio.channels.DatagramChannel;
+import java.util.Arrays;
 
 @Command(name = "httpfs",
         commandListHeading = "%nThe commands are:%n",
@@ -34,9 +36,11 @@ public class Httpfs implements Runnable {
     public static SocketAddress routerAddress = new InetSocketAddress("localhost", 3000);
     public static InetSocketAddress serverAddress = new InetSocketAddress("localhost", 8007);
 
-    Response response = new Response();
+    Response response;
+    DatagramSocket socketServer;
+    RequestWorker requestWorker;
     private static final Logger logger = LoggerFactory.getLogger(UDPServer.class);
-    public long currentSeqNum = 0;
+    public long currentSeqNum = 2;
     boolean timedOutInHandshake = false;
     private Executor executor = new HttpExecutor();
     private HttpParser parser = new HttpParser();
@@ -51,8 +55,23 @@ public class Httpfs implements Runnable {
     @Option(names = {"-p", "--port"}, description = "Specifies the port number that the server will listen and serve at.Default is 8080.") int port;
     @Option(names = {"-d", "--dir"}, description = "Specifies the directory that the server will use to read/write requested files.Default is the current directory when launching the application.") String dirPath;
 
-    public Httpfs(int port) { this.port = port; }
-    public Httpfs() {}
+    public Httpfs() {
+        try {
+            this.socketServer = new DatagramSocket(8007);
+            socketServer.connect(routerAddress);
+
+            this.requestWorker = new RequestWorker(this.dirPath);
+
+            this.response = new Response();
+            response.setVersion("HTTP/1.0");
+            response.setStatusCode("405");
+            response.setPhrase("Method Not Allowed");
+
+        } catch (SocketException e) {
+            logger.info(e.getMessage());
+        }
+    }
+
     public static void main(String... args) {
         new CommandLine(new Httpfs()).execute(args);
     }
@@ -73,23 +92,61 @@ public class Httpfs implements Runnable {
         if(!StringUtils.isEmpty(dirPath)){
             createPathToDirectory(dirPath);
         }
-        RequestWorker requestWorker = new RequestWorker(dirPath);
-
-        DatagramSocket socketServer = new DatagramSocket(8007);
         logger.info("httpfs is listening at {}", socketServer.getLocalSocketAddress());
 
         while(isOpenConnection()) {
 
             byte[] buffer = new byte[Packet.MAX_LEN];
             DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+
             socketServer.receive(dp);
+
             Packet packet = Packet.fromBytes(dp.getData());
+
             logger.info("Packet: {}", packet);
+
+            /* Client wants to establish connection */
             if(packet.getType() == PacketType.SYN.getIntValue()){
                 makeHandShake(socketServer, packet);
             }
-            //selectiveRepeat(); selective repeat divided in two depending on if it is a get or post request
+            /* Client started sending data, first packet contains request method*/
+            else if(packet.getType() == PacketType.DATA.getIntValue() && packet.getSequenceNumber() == 1) {
+                Request request = reqConverter.convert(Arrays.toString(packet.getPayload()));
+                Method method = request.getHttpMethod();
+                switch (method) {
+                    case GET:
+                        selectiveRepeatForGET(requestWorker.processRequest(request));
+                    case POST:
+                        selectiveRepeatForPOST(requestWorker.processRequest(request));
+                    default:
+                        send405();
+                }
+            }
         }
+    }
+
+    private void selectiveRepeatForPOST(Response response) {
+    }
+
+    private void selectiveRepeatForGET(Response response) {
+        try{
+            String responseToSegment = parser.parseResponse(response);
+
+            Packet[] packets = segmentMessage(responseToSegment);
+
+
+        } catch(Exception e) {
+            logger.info(e.getMessage());
+        }
+    }
+
+    private void send405() throws IOException {
+        DatagramPacket respDP = makePacket(PacketType.DATA.getIntValue(), currentSeqNum, parser.parseResponse(this.response));
+        socketServer.send(respDP);
+    }
+
+    private void selectiveRepeatGET() {
+
     }
 
     private void makeHandShake(DatagramSocket socketServer, Packet packet) throws IOException {
@@ -99,18 +156,14 @@ public class Httpfs implements Runnable {
                 .create();
 
         DatagramPacket dpSYN_ACK = new DatagramPacket(pSYN_ACK.toBytes(), pSYN_ACK.toBytes().length, routerAddress);
-        socketServer.connect(routerAddress);
         socketServer.send(dpSYN_ACK);
-    }
-
-    private void selectiveRepeat() {
-
+        this.handShake = true;
     }
 
     private DatagramPacket makePacket(int type, long seq, String payload){
         Packet packet =  new Packet.Builder()
-                .setType(PacketType.SYN.getIntValue())
-                .setSequenceNumber(getCurrentSeqNum())
+                .setType(type)
+                .setSequenceNumber(seq)
                 .setPortNumber(serverAddress.getPort())
                 .setPeerAddress(serverAddress.getAddress())
                 .setPayload(payload.getBytes())
@@ -118,12 +171,8 @@ public class Httpfs implements Runnable {
         return new DatagramPacket(packet.toBytes(), packet.toBytes().length, routerAddress);
     }
 
-    private void makeHandShake(Packet packet, SocketAddress routerAddr, DatagramChannel channel) throws IOException {
-
-    }
-
-    public Packet[] segmentMessage(byte[] b, int maximumSizePayload) {
-        return null;
+    public Packet[] segmentMessage(String responseToSegment) {
+        int numPackets =
     }
 
     public void createPathToDirectory(String dirpath) {

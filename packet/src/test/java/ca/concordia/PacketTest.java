@@ -1,5 +1,6 @@
 package ca.concordia;
 
+import ca.concordia.domain.Packet;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;

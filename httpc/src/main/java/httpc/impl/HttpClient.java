@@ -2,8 +2,8 @@ package httpc.impl;
 
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
-import ca.concordia.Packet;
-import ca.concordia.PacketType;
+import ca.concordia.domain.Packet;
+import ca.concordia.domain.PacketType;
 import ca.concordia.UDPClient;
 import httpc.api.Client;
 import org.slf4j.Logger;

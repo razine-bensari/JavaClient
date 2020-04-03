@@ -1,4 +1,4 @@
-package ca.concordia;
+package ca.concordia.domain;
 
 import java.io.IOException;
 import java.net.Inet4Address;

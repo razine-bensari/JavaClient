@@ -1,4 +1,4 @@
-package ca.concordia;
+package ca.concordia.domain;
 
 public enum PacketType {
     DATA(0), SYN(1), ACK(2), SYN_ACK(3), NAK(4), FIN(5), END(-1);
