@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.Timer;
 
 public class HttpClient implements Client {
@@ -44,8 +46,8 @@ public class HttpClient implements Client {
 
     public Response get(Request request) {
         try {
-            makeHandShake(socketClient);
-            selectiveRepeatGET();
+            makeHandShake();
+            return selectiveRepeatGET(request);
         } catch (SocketTimeoutException e) {
             logger.info(e.getMessage() + " during handshake. Trying again.");
             this.get(request);
@@ -55,8 +57,66 @@ public class HttpClient implements Client {
         return response;
     }
 
-    private void selectiveRepeatGET() {
+    private Response selectiveRepeatGET(Request request) {
+        /* Ready to send data */
+        try{
+            socketClient.setSoTimeout(10000); // 10 seconds
 
+            // Make Get Packet
+            currentSeqNum++;
+            DatagramPacket getDP = makePacket(PacketType.DATA.getIntValue(), currentSeqNum, parser.parseRequest(request));
+
+            // Send get request as single packet
+            socketClient.send(getDP);
+
+            /* This hashtable will hold the payload of all ACK packets*/
+            Hashtable<Integer, String> payloads = new Hashtable<>();
+
+            while(isHandShaken()) {
+
+                Packet pResponse = obtainPacket(); //get packet from server
+
+                //If it is a the last DATA packet (FIN)
+                if(pResponse.getType() == PacketType.END.getIntValue()) {
+                    response =  converter.convert(constructPayloadFromPayloads(payloads));
+                } else {
+                    // Continue to store payloads from packets
+                    payloads.put((int)pResponse.getSequenceNumber(), Arrays.toString(pResponse.getPayload()));
+                }
+                // Send ACK from received packet
+                pResponse.toBuilder()
+                        .setType(PacketType.ACK.getIntValue())
+                        .create();
+                DatagramPacket pACK = new DatagramPacket(pResponse.toBytes(), pResponse.toBytes().length, routerAddress);
+
+                socketClient.send(pACK);
+            }
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        return response;
+    }
+
+    private String constructPayloadFromPayloads(Hashtable<Integer, String> payloads) {
+        StringBuilder httpPayload = new StringBuilder();
+
+        /* Builds payload using sequences number in a sorted fashion */
+        for(int i = 2; i < payloads.size(); i++) {
+            httpPayload.append(payloads.get(i));
+        }
+        return httpPayload.toString();
+    }
+
+    private Packet obtainPacket() throws IOException {
+        byte[] buffer = new byte[Packet.MAX_LEN];
+        DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+        try {
+            socketClient.receive(dp);
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.info("Could not receive packet");
+        }
+        return Packet.fromBytes(dp.getData());
     }
 
     public Response post(Request request) {
@@ -77,7 +137,7 @@ public class HttpClient implements Client {
     public HttpClient(){
         try {
             socketClient = new DatagramSocket();
-            socketClient.setSoTimeout(5000);
+            socketClient.setSoTimeout(2000);
             socketClient.connect(routerAddress);
         } catch (SocketException e) {
             logger.info(e.getMessage());
@@ -102,19 +162,7 @@ public class HttpClient implements Client {
         this.setCurrentSeqNum(1L);
     }
 
-//    private Response selectiveRepeat(Packet[] packets, int windowSize, Request request, SocketAddress routerAddr, InetSocketAddress serverAddr) {
-//       // packetBuffer = getPacketBufferFromRequest(request, serverAddr); /* Contains the packets for handshake */
-//    }
-
-//    private DatagramPacket[] getPacketBufferFromRequest(Request request, InetSocketAddress serverAddr) {
-//        String requestString = parser.parseRequest(request);
-//
-//    }
-
-
-
-
-    private void makeHandShake(DatagramSocket socketClient) throws IOException {
+    private void makeHandShake() throws IOException {
         DatagramPacket dpSYN = makePacket(PacketType.SYN.getIntValue(), getCurrentSeqNum(), "in syn payload");
         socketClient.send(dpSYN);
 
@@ -122,20 +170,18 @@ public class HttpClient implements Client {
         DatagramPacket dpResponse = new DatagramPacket(buffer, buffer.length);
         socketClient.receive(dpResponse);
 
-        Packet pACK = Packet.fromBytes(dpResponse.getData());
-        if(pACK.getType() == PacketType.SYN_ACK.getIntValue() && pACK.getSequenceNumber() == 1) {
-            String payload = new String(pACK.getPayload(), StandardCharsets.UTF_8);
+        Packet pSYN_ACK = Packet.fromBytes(dpResponse.getData());
+        if(pSYN_ACK.getType() == PacketType.SYN_ACK.getIntValue()) {
+            String payload = new String(pSYN_ACK.getPayload(), StandardCharsets.UTF_8);
             logger.info("Handshake ACK from server, sending data");
-            logger.info("Packet: {}", pACK);
-            logger.info("Payload: {}",  payload);
         }
-
+        this.handShake = true;
     }
 
     private DatagramPacket makePacket(int type, long seq, String payload){
         Packet packet =  new Packet.Builder()
-                .setType(PacketType.SYN.getIntValue())
-                .setSequenceNumber(getCurrentSeqNum())
+                .setType(type)
+                .setSequenceNumber(seq)
                 .setPortNumber(serverAddress.getPort())
                 .setPeerAddress(serverAddress.getAddress())
                 .setPayload(payload.getBytes())
