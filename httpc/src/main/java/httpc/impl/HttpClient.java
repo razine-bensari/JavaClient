@@ -43,17 +43,12 @@ public class HttpClient implements Client {
 
 
     public Response get(Request request) {
-        try {
-            return selectiveRepeatGET(request);
-        } catch (IOException e) {
-            logger.info(e.getMessage());
-        }
-        return response;
+        return this.makeHandShake(request);
     }
 
-    private Response selectiveRepeatGET(Request request) throws IOException {
+    private Response selectiveRepeatGET(Request request, Packet pACKServer) throws IOException {
 
-        Packet pFirstACK = this.makeHandShake(request);
+        socketClient.setSoTimeout(1000 * 300); // 30 seconds before time out
 
         /* This hashtable will hold the payload of all ACK packets*/
         Hashtable<Integer, String> payloads = new Hashtable<>();
@@ -63,8 +58,8 @@ public class HttpClient implements Client {
 
             Packet pResponse;
 
-            if(pFirstACK.getSequenceNumber() == 2 && !this.sentAndReceivedRequest) {
-                pResponse = pFirstACK;
+            if(pACKServer.getSequenceNumber() == 2 && !this.sentAndReceivedRequest) {
+                pResponse = pACKServer;
                 this.sentAndReceivedRequest = true;
             } else {
                 pResponse = obtainPacket(); //get packet from server
@@ -126,10 +121,10 @@ public class HttpClient implements Client {
     public HttpClient(){
         try {
             socketClient = new DatagramSocket();
-            //socketClient.setSoTimeout(100000);
+            //socketClient.setSoTimeout(1000);
             socketClient.connect(routerAddress);
         } catch (SocketException e) {
-            logger.info(e.getMessage());
+            logger.info("Got a timeout due to constructor: {}", e.getMessage());
         }
     }
 
@@ -139,10 +134,10 @@ public class HttpClient implements Client {
         socketClient.close();
     }
 
-    private Packet makeHandShake(Request request) {
+    private Response makeHandShake(Request request) {
         Packet pACK = null;
         try {
-            //socketClient.setSoTimeout(1000); // Every one seconds, reattempt connection
+            socketClient.setSoTimeout(3000); // Every one seconds, reattempt connection
             while(true) {
                 DatagramPacket dpSYN = pService.makeNewDatagramPacket(PacketType.SYN.getIntValue(), getCurrentSeqNum(), "in syn payload", serverAddress, routerAddress);
                 socketClient.send(dpSYN);
@@ -154,10 +149,9 @@ public class HttpClient implements Client {
 
                 Packet pSYN_ACK = Packet.fromBytes(dpResponse.getData());
                 if(pSYN_ACK.getType() == PacketType.SYN_ACK.getIntValue()) {
+
                     String payload = new String(pSYN_ACK.getPayload(), StandardCharsets.UTF_8);
 
-                    /* Ready to send data/ACK */
-                    //socketClient.setSoTimeout(3000); // 1 second to get response from server
 
                     // Make Get Packet
                     currentSeqNum++;
@@ -169,24 +163,32 @@ public class HttpClient implements Client {
                     byte[] buffer2 = new byte[Packet.MAX_LEN];
                     DatagramPacket dpResponse2 = new DatagramPacket(buffer2, buffer.length);
 
+                    /* Ready to send data/ACK */
+                    //socketClient.setSoTimeout(1000); // 4 second to get response from server
+
                     // receive ack from get
                     socketClient.receive(dpResponse2);
 
                     pACK = Packet.fromBytes(dpResponse2.getData());
                     this.handShake = true;
                     logger.info("Handshake Completed");
-                    return pACK;
+
+
+                    return selectiveRepeatGET(request, pACK);
+
+
                 } else {
                     logger.info("Retrying handshake");
                 }
             }
         } catch (SocketTimeoutException e) {
             logger.info("Failed to perform handshake. Time out received. Retrying");
-            Packet p = this.makeHandShake(request);
+            currentSeqNum = 0;
+            response = this.makeHandShake(request);
         } catch (IOException e) {
             e.getMessage();
         }
-        return pACK;
+        return response;
     }
 
     private void setTimeoutHandShake(DatagramChannel channel) throws IOException {

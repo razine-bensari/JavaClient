@@ -30,7 +30,7 @@ public class HttpcUnitTest {
 
     @Test
     public void httpcCommandGetWithOneHeader() {
-        String str = "http://localhost:/8007hello.txt";
+        String str = "http://localhost:8007/bigtext.txt";
 
         Httpc httpc = new Httpc();
 

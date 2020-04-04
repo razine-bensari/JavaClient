@@ -101,7 +101,7 @@ public class Httpfs implements Runnable {
         }
         logger.info("httpfs is listening at {}", socketServer.getLocalSocketAddress());
 
-        socketServer.setSoTimeout(0);
+        socketServer.setSoTimeout(0); //Infinite time out
 
         while(isOpenConnection()) {
 
@@ -160,12 +160,12 @@ public class Httpfs implements Runnable {
             RTT rtt = new RTT();
 
             /* Initial socket timeout */
-            //socketServer.setSoTimeout(10000); // 10 seconds
+            socketServer.setSoTimeout(2000); // 2 seconds
 
             while(!areAllSent(pStatuses)) {
 
                 // Set timeout for buffer
-                //socketServer.setSoTimeout(timeOut.getEstimatedTimeOut());
+                socketServer.setSoTimeout(timeOut.getEstimatedTimeOut());
 
                 // Return the first index of NAK packet
                 int indexNAK = getFirstNAK(pStatuses);
@@ -179,14 +179,16 @@ public class Httpfs implements Runnable {
 
                 // Receive ACK packet from client
                 pLastACK = receivePacketsACK(indexNAK, windowSize, pStatuses, timeOut, rtt);
-            }
 
-            // Received ACK from END packet
-            assert pLastACK != null;
-            if(pLastACK.getType() == PacketType.ACK.getIntValue() && pLastACK.getSequenceNumber() == packets[packets.length - 1].getSequenceNumber()){
-                logger.info("END packet sent, ACK received from client");
-            }
+                // Received ACK from END packet
+                assert pLastACK != null;
+                if(pLastACK.getType() == PacketType.ACK.getIntValue() && pLastACK.getSequenceNumber() == packets[packets.length - 1].getSequenceNumber()){
+                    logger.info("END packet sent, ACK received from client");
+                    socketServer.setSoTimeout(0);
+                    break;
+                }
 
+            }
         } catch(Exception e) {
             logger.info(e.getMessage());
         }

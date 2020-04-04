@@ -12,7 +12,7 @@ public class TimeOut {
     public int devRTT;
 
     public TimeOut() {
-        this.estimatedRTT = 10000;
+        this.estimatedRTT = 500;
         this.devRTT = 0; //Per book suggestion
     }
 
