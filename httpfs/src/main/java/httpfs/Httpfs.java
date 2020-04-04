@@ -3,9 +3,13 @@ package httpfs;
 import RequestAndResponse.Method;
 import RequestAndResponse.Request;
 import RequestAndResponse.Response;
+import ca.concordia.RTT;
+import ca.concordia.TimeOut;
+import ca.concordia.UDPServer;
 import ca.concordia.domain.Packet;
 import ca.concordia.domain.PacketType;
-import ca.concordia.UDPServer;
+import ca.concordia.services.PacketServiceImpl;
+import ca.concordia.services.api.PacketService;
 import httpc.api.Executor;
 import httpc.api.Validator;
 import httpc.impl.HttpExecutor;
@@ -24,6 +28,7 @@ import utils.impl.HttpResponseConverter;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @Command(name = "httpfs",
@@ -35,6 +40,8 @@ public class Httpfs implements Runnable {
 
     public static SocketAddress routerAddress = new InetSocketAddress("localhost", 3000);
     public static InetSocketAddress serverAddress = new InetSocketAddress("localhost", 8007);
+
+    public PacketService pService = new PacketServiceImpl();
 
     Response response;
     DatagramSocket socketServer;
@@ -94,6 +101,8 @@ public class Httpfs implements Runnable {
         }
         logger.info("httpfs is listening at {}", socketServer.getLocalSocketAddress());
 
+        socketServer.setSoTimeout(0);
+
         while(isOpenConnection()) {
 
             byte[] buffer = new byte[Packet.MAX_LEN];
@@ -110,43 +119,167 @@ public class Httpfs implements Runnable {
                 makeHandShake(socketServer, packet);
             }
             /* Client started sending data, first packet contains request method*/
-            else if(packet.getType() == PacketType.DATA.getIntValue() && packet.getSequenceNumber() == 1) {
-                Request request = reqConverter.convert(Arrays.toString(packet.getPayload()));
+            else if(packet.getType() == PacketType.ACK.getIntValue() && packet.getSequenceNumber() == 1) {
+                Request request = reqConverter.convert(new String(packet.getPayload(), StandardCharsets.UTF_8));
                 Method method = request.getHttpMethod();
-                switch (method) {
-                    case GET:
-                        selectiveRepeatForGET(requestWorker.processRequest(request));
-                    case POST:
-                        selectiveRepeatForPOST(requestWorker.processRequest(request));
-                    default:
-                        send405();
+                logger.info("Received DATA packet");
+                logger.info("That is the payload: {}", new String(packet.getPayload(), StandardCharsets.UTF_8));
+                if(Method.GET == method) {
+                    selectiveRepeatForGET(requestWorker.processRequest(request), packet);
                 }
+                else if(Method.POST == method) {
+                    selectiveRepeatForPOST(requestWorker.processRequest(request), packet);
+                } else {
+                    send405(packet);
+                }
+
             }
         }
     }
 
-    private void selectiveRepeatForPOST(Response response) {
+    private void selectiveRepeatForPOST(Response response, Packet packet) {
     }
 
-    private void selectiveRepeatForGET(Response response) {
+    private void selectiveRepeatForGET(Response response, Packet getPacket) {
         try{
+
+            Packet pLastACK = null;
+
             String responseToSegment = parser.parseResponse(response);
 
-            Packet[] packets = segmentMessage(responseToSegment);
+            // Array of packets to send to client
+            Packet[] packets = pService.segmentMessage(responseToSegment, getPacket);
 
+
+            // Array of each ACK sent packet
+            boolean[] pStatuses = new boolean[packets.length];
+            Arrays.fill(pStatuses, false); // False by default
+
+            //Initializing timeouts
+            TimeOut timeOut = new TimeOut();
+            RTT rtt = new RTT();
+
+            /* Initial socket timeout */
+            //socketServer.setSoTimeout(10000); // 10 seconds
+
+            while(!areAllSent(pStatuses)) {
+
+                // Set timeout for buffer
+                //socketServer.setSoTimeout(timeOut.getEstimatedTimeOut());
+
+                // Return the first index of NAK packet
+                int indexNAK = getFirstNAK(pStatuses);
+
+                // Returns current window size. Size = 4 by default and smaller when reaching
+                // end of packets array
+                int windowSize = getUpdatedWindowSize((indexNAK + 4), packets.length);
+
+                // Send all packets not ACK yet in window
+                sendPacketsInWindow(indexNAK, windowSize, packets, pStatuses, rtt);
+
+                // Receive ACK packet from client
+                pLastACK = receivePacketsACK(indexNAK, windowSize, pStatuses, timeOut, rtt);
+            }
+
+            // Received ACK from END packet
+            assert pLastACK != null;
+            if(pLastACK.getType() == PacketType.ACK.getIntValue() && pLastACK.getSequenceNumber() == packets[packets.length - 1].getSequenceNumber()){
+                logger.info("END packet sent, ACK received from client");
+            }
 
         } catch(Exception e) {
             logger.info(e.getMessage());
         }
     }
 
-    private void send405() throws IOException {
-        DatagramPacket respDP = makePacket(PacketType.DATA.getIntValue(), currentSeqNum, parser.parseResponse(this.response));
-        socketServer.send(respDP);
+    private Packet receivePacketsACK(int indexNAK, int windowSize, boolean[] pStatuses, TimeOut timeOut, RTT rtt) throws IOException {
+
+        // Method will return last ack from client
+        Packet pLastACK = null;
+
+        // Loop through window and receive ACK packet
+        for(int i = indexNAK; i < windowSize; i++) {
+            byte[] buffer = new byte[Packet.MAX_LEN];
+            DatagramPacket dpACK = new DatagramPacket(buffer, buffer.length);
+            try {
+                socketServer.receive(dpACK);
+
+                // Update timeout
+                timeOut.calculateTimeOut(rtt.getRTTime(System.currentTimeMillis(), indexNAK));
+
+            } catch (SocketTimeoutException e) {
+                logger.info("Socket timed out when receiving from clients");
+                e.printStackTrace();
+                // Packet timed out! Skip rest of iteration
+                continue;
+            }
+
+            // Make received ACk as true in array
+            Packet pACK = Packet.fromBytes(dpACK.getData());
+            pLastACK = pACK;
+            pStatuses[((int) (pACK.getSequenceNumber() - 2))] = true;
+
+        }
+        return pLastACK;
     }
 
-    private void selectiveRepeatGET() {
+    public void sendPacketsInWindow(int indexNAK, int windowSize, Packet[] packets, boolean[] pStatuses, RTT rtt) throws IOException {
 
+        // Loop through window and send packet if not ACK
+        for(int i = indexNAK; i < windowSize; i++) {
+            Packet pCurrent = packets[i];
+
+            // If packet has already been ACK, do not send it, skip current iteration
+            if(pStatuses[((int) (pCurrent.getSequenceNumber() - 2))]) {
+                continue;
+            }
+
+            /* Else, send packets */
+
+            // Create packet to send
+            Packet pACK = pService.makePacketFromPacket(pCurrent, pCurrent.getType(), pCurrent.getSequenceNumber(), new String(pCurrent.getPayload(), StandardCharsets.UTF_8));
+            DatagramPacket dpACK = new DatagramPacket(pACK.toBytes(), pACK.toBytes().length, routerAddress);
+
+            //Add timeout
+            rtt.initializeStartTime(System.currentTimeMillis(), indexNAK);
+
+            // Send YAY!
+            logger.info("Datagram Packet Size: {}", dpACK.getData().length);
+            socketServer.send(dpACK);
+        }
+    }
+
+    private int getUpdatedWindowSize(int i, int length) {
+        return Math.min(i, length);
+    }
+
+    private int getFirstNAK(boolean[] pStatuses) {
+        for(int i = 0; i < pStatuses.length; i++) {
+            if(!pStatuses[i]) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private boolean areAllSent(boolean[] pStatuses) {
+        for (boolean pStatus : pStatuses) {
+            if (!pStatus) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+
+    private void send405(Packet packet) throws IOException {
+        Packet p405 = packet.toBuilder()
+                .setType(PacketType.DATA.getIntValue())
+                .setPayload(parser.parseResponse(this.response).getBytes())
+                .create();
+        DatagramPacket respDP = new DatagramPacket(p405.toBytes(), p405.toBytes().length, routerAddress);
+        socketServer.send(respDP);
     }
 
     private void makeHandShake(DatagramSocket socketServer, Packet packet) throws IOException {
@@ -160,21 +293,6 @@ public class Httpfs implements Runnable {
         this.handShake = true;
     }
 
-    private DatagramPacket makePacket(int type, long seq, String payload){
-        Packet packet =  new Packet.Builder()
-                .setType(type)
-                .setSequenceNumber(seq)
-                .setPortNumber(serverAddress.getPort())
-                .setPeerAddress(serverAddress.getAddress())
-                .setPayload(payload.getBytes())
-                .create();
-        return new DatagramPacket(packet.toBytes(), packet.toBytes().length, routerAddress);
-    }
-
-    public Packet[] segmentMessage(String responseToSegment) {
-        int numPackets =
-    }
-
     public void createPathToDirectory(String dirpath) {
         String absolutePath = "/Users/razine/workspace/JavaClientServerHTTP/fs";
         String sfPath = absolutePath + "/" + dirpath;
@@ -185,14 +303,6 @@ public class Httpfs implements Runnable {
     private void closeConnection() {
         this.setHandShake(false);
         this.setCurrentSeqNum(0);
-    }
-
-    private int getWindowSize(int length) {
-        if (length == 1) {
-            return 1;
-        } else {
-            return length/2;
-        }
     }
 
     public boolean isHandShaken() {

@@ -1,7 +1,7 @@
 package ca.concordia.domain;
 
 public enum PacketType {
-    DATA(0), SYN(1), ACK(2), SYN_ACK(3), NAK(4), FIN(5), END(-1);
+    DATA(1), SYN(2), ACK(3), SYN_ACK(4), NAK(5), FIN(6), END(0);
 
     private int intValue;
 

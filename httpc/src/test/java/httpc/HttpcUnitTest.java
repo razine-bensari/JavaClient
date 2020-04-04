@@ -30,13 +30,13 @@ public class HttpcUnitTest {
 
     @Test
     public void httpcCommandGetWithOneHeader() {
-        String str = "http://httpbin.org/ip";
+        String str = "http://localhost:/8007hello.txt";
 
         Httpc httpc = new Httpc();
 
         String[] headers = {"header1:value1"};
 
-        httpc.get(headers,null,null,null, true,str);
+        httpc.get(null,null,null,null, true,str);
     }
 
     @Test(expected = ParsingException.class)
