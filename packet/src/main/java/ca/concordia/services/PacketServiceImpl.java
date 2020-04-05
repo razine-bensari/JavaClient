@@ -4,6 +4,7 @@ import ca.concordia.domain.Packet;
 import ca.concordia.domain.PacketType;
 import ca.concordia.services.api.PacketService;
 
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -40,7 +41,8 @@ public class PacketServiceImpl implements PacketService {
         }
         // Append END packet to packet list
         int seq = numOfPackets + 2;
-        packets.add(this.makePacketFromPacket(packets.get(0), PacketType.END.getIntValue(), seq,  ""));
+        int windowSize = (packets.size() + 1) / 2;
+        packets.add(this.makeEndPacket(packets.get(0), PacketType.END.getIntValue(), seq, windowSize));
         return packets.toArray(new Packet[numOfPackets + 1]);
     }
 
@@ -54,6 +56,15 @@ public class PacketServiceImpl implements PacketService {
                 .setPayload(payload.getBytes())
                 .create();
         return new DatagramPacket(packet.toBytes(), packet.toBytes().length, routerAddress);
+    }
+
+    public Packet makeEndPacket(Packet packet, int type, long seq, int windowSize) {
+        BigInteger bigInt = BigInteger.valueOf(windowSize);
+        return packet.toBuilder()
+                .setType(type)
+                .setSequenceNumber(seq)
+                .setPayload(bigInt.toByteArray())
+                .create();
     }
 
     @Override
