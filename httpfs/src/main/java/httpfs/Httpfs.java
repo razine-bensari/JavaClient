@@ -125,7 +125,7 @@ public class Httpfs implements Runnable {
                 makeHandShake(socketServer, packet);
             }
             /* Client started sending data, first packet contains request method*/
-            else if(packet.getType() == PacketType.DATA.getIntValue() && packet.getSequenceNumber() == 2) {
+            else if(packet.getType() == PacketType.ACK.getIntValue() && packet.getSequenceNumber() == 1) {
                 Request request = reqConverter.convert(new String(packet.getPayload(), StandardCharsets.UTF_8));
                 Method method = request.getHttpMethod();
                 logger.info("Received DATA packet");
@@ -145,63 +145,6 @@ public class Httpfs implements Runnable {
 
     private void selectiveRepeatForPOST(RequestWorker requestWorker, Packet pACKServer) throws IOException {
 
-        socketServer.setSoTimeout(1000 * 300); // 300 seconds before time out
-
-        /* This hashtable will hold the payload of all ACK packets*/
-        Hashtable<Integer, String> payloads = new Hashtable<>();
-
-        int lastSeq = -1;
-
-
-        while(isHandShaken()) {
-
-            Packet pResponse;
-
-            if(pACKServer.getSequenceNumber() == 2 && !this.sentAndReceivedRequest) {
-                pResponse = pACKServer;
-                payloads.put((int)pResponse.getSequenceNumber(), new String(pResponse.getPayload(), StandardCharsets.UTF_8));
-                this.sentAndReceivedRequest = true;
-            } else {
-                pResponse = obtainPacket(); //get packet from server
-            }
-            logger.info("pResponse size: {}", pResponse.getPayload().length);
-
-
-            // Final ack from client has been received by server
-            if((pResponse.getType() == PacketType.END.getIntValue()) || receivedAll(payloads, lastSeq)) {
-                lastSeq = (int) pResponse.getSequenceNumber();
-                int windowSize = pResponse.getPayload()[0];
-                if(receivedAllPacketInWindow(payloads, windowSize)) {
-                    request =  reqConverter.convert(constructPayloadFromPayloads(payloads));
-                    this.handShake = false;
-                }
-            } else {
-                // Continue to store payloads from packets
-                payloads.put((int)pResponse.getSequenceNumber(), new String(pResponse.getPayload(), StandardCharsets.UTF_8));
-            }
-
-            // Send ACK from received packet
-            if(this.request == null) {
-                Packet pACK = pResponse.toBuilder()
-                        .setType(PacketType.ACK.getIntValue())
-                        .create();
-                DatagramPacket dpACK = new DatagramPacket(pACK.toBytes(), pACK.toBytes().length, routerAddress);
-                socketServer.send(dpACK);
-             // Send response
-            } else {
-                Packet pRES_ACK = pResponse.toBuilder()
-                        .setType(PacketType.ACK.getIntValue())
-                        .setPayload(parser.parseResponse(requestWorker.processRequest(this.request)).getBytes())
-                        .create();
-                DatagramPacket dpRES_ACK = new DatagramPacket(pRES_ACK.toBytes(), pRES_ACK.toBytes().length, routerAddress);
-                socketServer.send(dpRES_ACK);
-            }
-
-            if(!isHandShaken()) {
-                socketServer.close();
-                this.sentAndReceivedRequest = false;
-            }
-        }
     }
 
     private void selectiveRepeatForGET(Response response, Packet getPacket) {

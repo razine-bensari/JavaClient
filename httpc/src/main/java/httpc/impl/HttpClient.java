@@ -58,7 +58,7 @@ public class HttpClient implements Client {
         Hashtable<Integer, String> payloads = new Hashtable<>();
 
         int lastSeq = -1;
-
+        int windowSize = 1;
 
         while(isHandShaken()) {
 
@@ -75,9 +75,11 @@ public class HttpClient implements Client {
 
             // Final ack from client has been received by server
             if((pResponse.getType() == PacketType.END.getIntValue()) || receivedAll(payloads, lastSeq)) {
-                lastSeq = (int) pResponse.getSequenceNumber();
-                int windowSize = pResponse.getPayload()[0];
-                if(receivedAllPacketInWindow(payloads, windowSize)) {
+                if((pResponse.getType() == PacketType.END.getIntValue())) {
+                    lastSeq = (int) pResponse.getSequenceNumber();
+                    windowSize = pResponse.getPayload()[0];
+                }
+                if(receivedAll(payloads, lastSeq)) {
                     response =  converter.convert(constructPayloadFromPayloads(payloads));
                     this.handShake = false;
                 }
@@ -96,6 +98,10 @@ public class HttpClient implements Client {
 
             socketClient.send(dpACK);
 
+            if(receivedAll(payloads, lastSeq)) {
+                response =  converter.convert(constructPayloadFromPayloads(payloads));
+                this.handShake = false;
+            }
             if(!isHandShaken()) {
                 socketClient.close();
                 this.sentAndReceivedRequest = false;
@@ -108,7 +114,7 @@ public class HttpClient implements Client {
         if(lastSeq == -1) {
             return false;
         } else {
-            for(int i = 2; i <= lastSeq; i++) {
+            for(int i = 2; i <= (lastSeq - 1); i++) {
                 if(payloads.get(i) == null) {
                     return false;
                 }
@@ -118,13 +124,12 @@ public class HttpClient implements Client {
     }
 
     private boolean receivedAllPacketInWindow(Hashtable<Integer, String> payloads, int windowSize) {
-        boolean received = true;
-        for(int i = (payloads.size() + 1); i >= ((payloads.size() + 2) - windowSize); i--) {
+        for(int i = (payloads.size() + 1); i >= ((payloads.size() + 1) - windowSize); i--) {
             if(payloads.get(i) == null) {
-                received = false;
+                return false;
             }
         }
-        return received;
+        return true;
     }
 
     private String constructPayloadFromPayloads(Hashtable<Integer, String> payloads) {
